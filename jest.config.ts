@@ -6,6 +6,7 @@ const config: Config = {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
         jsx: 'react-jsx',
+        isolatedModules: true,
       },
     }],
   },
