@@ -3,14 +3,19 @@
 import { createContext, useContext, useRef, type ReactNode } from 'react'
 import { useStore } from 'zustand'
 import { createEditorStore, type EditorStore, type EditorState } from './editor.store'
-import { startupLaunchpadSchema } from '@/lib/schemas/startup-launchpad'
+import type { TemplateSchema } from '@/lib/schemas/types'
 
 const EditorContext = createContext<EditorStore | null>(null)
 
-export function EditorProvider({ children }: { children: ReactNode }) {
+interface EditorProviderProps {
+  schema: TemplateSchema
+  children: ReactNode
+}
+
+export function EditorProvider({ schema, children }: EditorProviderProps) {
   const storeRef = useRef<EditorStore | null>(null)
   if (!storeRef.current) {
-    storeRef.current = createEditorStore(startupLaunchpadSchema)
+    storeRef.current = createEditorStore(schema)
   }
   return (
     <EditorContext.Provider value={storeRef.current}>

@@ -9,6 +9,7 @@ describe('TemplateSchema types', () => {
         {
           id: 'hero',
           label: 'Hero',
+          blockType: 'hero',
           fields: [
             { id: 'headline', type: 'text', label: 'Headline', default: 'Hello', multiline: false },
             { id: 'bg', type: 'color', label: 'Background', default: '#000000' },

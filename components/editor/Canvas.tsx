@@ -1,9 +1,10 @@
 'use client'
 
 import { useEditorStore } from '@/lib/store/editor-context'
-import { StartupLaunchpad } from '@/components/templates/startup-launchpad'
+import { TemplateRenderer } from '@/components/TemplateRenderer'
 
 export function Canvas() {
+  const schema = useEditorStore((s) => s.schema)
   const values = useEditorStore((s) => s.values)
 
   return (
@@ -18,7 +19,7 @@ export function Canvas() {
           boxShadow: '0 0 0 1px var(--ed-border-subtle)',
         }}
       >
-        <StartupLaunchpad values={values} />
+        <TemplateRenderer schema={schema} values={values} />
       </div>
     </div>
   )

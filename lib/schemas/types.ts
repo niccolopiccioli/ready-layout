@@ -1,5 +1,23 @@
 export type FieldType = 'text' | 'color' | 'image' | 'emoji' | 'repeater'
 
+export type BlockType =
+  | 'hero'
+  | 'features'
+  | 'pricing'
+  | 'faq'
+  | 'cta'
+  | 'about'
+  | 'gallery'
+  | 'articles'
+  | 'contact'
+  | 'linklist'
+  | 'menu'
+  | 'products'
+  | 'testimonials'
+  | 'stats'
+  | 'schedule'
+  | 'textblock'
+
 export interface TextField {
   id: string
   type: 'text'
@@ -49,12 +67,15 @@ export type Field = TextField | ColorField | ImageField | EmojiField | RepeaterF
 export interface Section {
   id: string
   label: string
+  blockType: BlockType
   fields: Field[]
 }
 
 export interface TemplateSchema {
   id: string
   name: string
+  description?: string
+  category?: 'landing' | 'portfolio' | 'commerce' | 'content' | 'event' | 'personal'
   sections: Section[]
 }
 

@@ -3,10 +3,13 @@ import type { TemplateSchema } from './types'
 export const startupLaunchpadSchema: TemplateSchema = {
   id: 'startup-launchpad',
   name: 'Startup Launchpad',
+  description: 'Landing page per SaaS, app o prodotto digitale. Hero impattante, features, pricing, FAQ.',
+  category: 'landing',
   sections: [
     {
       id: 'hero',
       label: 'Hero',
+      blockType: 'hero',
       fields: [
         { id: 'headline',    type: 'text',  label: 'Titolo principale', default: 'Il tuo prodotto\ncambia tutto.' },
         { id: 'subheadline', type: 'text',  label: 'Sottotitolo',       default: 'Costruito per team moderni. Veloce, semplice, potente.', multiline: true },
@@ -19,6 +22,7 @@ export const startupLaunchpadSchema: TemplateSchema = {
     {
       id: 'features',
       label: 'Features',
+      blockType: 'features',
       fields: [
         { id: 'sectionTitle', type: 'text',  label: 'Titolo sezione',  default: 'Tutto quello che ti serve' },
         { id: 'accentColor',  type: 'color', label: 'Colore accento',  default: '#6366f1' },
@@ -42,6 +46,7 @@ export const startupLaunchpadSchema: TemplateSchema = {
     {
       id: 'pricing',
       label: 'Pricing',
+      blockType: 'pricing',
       fields: [
         { id: 'sectionTitle', type: 'text',  label: 'Titolo sezione', default: 'Piani semplici, nessuna sorpresa' },
         { id: 'accentColor',  type: 'color', label: 'Colore accento', default: '#6366f1' },
@@ -68,6 +73,7 @@ export const startupLaunchpadSchema: TemplateSchema = {
     {
       id: 'faq',
       label: 'FAQ',
+      blockType: 'faq',
       fields: [
         { id: 'sectionTitle', type: 'text', label: 'Titolo sezione', default: 'Domande frequenti' },
         {
@@ -89,6 +95,7 @@ export const startupLaunchpadSchema: TemplateSchema = {
     {
       id: 'cta',
       label: 'CTA Finale',
+      blockType: 'cta',
       fields: [
         { id: 'headline',  type: 'text',  label: 'Titolo',        default: 'Pronto a iniziare?' },
         { id: 'subtext',   type: 'text',  label: 'Testo',         default: 'Unisciti a oltre 10.000 team che usano il nostro prodotto ogni giorno.' },
