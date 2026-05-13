@@ -40,7 +40,7 @@ export function RepeaterField({ id, label, value, itemSchema, onChange }: Repeat
       <Label className="text-xs text-slate-500 uppercase tracking-wide">{label}</Label>
       <div className="space-y-2">
         {value.map((item, i) => (
-          <div key={i} className="border border-slate-200 rounded-lg overflow-hidden">
+          <div key={item['id'] || item['title'] || item['name'] || item['question'] || i} className="border border-slate-200 rounded-lg overflow-hidden">
             <button
               className="w-full flex items-center justify-between px-3 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors"
               onClick={() => setOpenIndex(openIndex === i ? null : i)}

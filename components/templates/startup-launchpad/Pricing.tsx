@@ -25,7 +25,7 @@ export function Pricing({ sectionTitle, accentColor, plans }: PricingProps) {
             const features = plan.features.split('|').filter(Boolean)
             return (
               <div
-                key={i}
+                key={plan.name || i}
                 className={`rounded-2xl p-8 flex flex-col ${
                   isHighlighted
                     ? 'text-white shadow-xl scale-[1.03]'

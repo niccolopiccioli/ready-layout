@@ -21,7 +21,7 @@ export function FAQ({ sectionTitle, items }: FAQProps) {
         <h2 className="text-4xl font-bold text-slate-900 text-center mb-16">{sectionTitle}</h2>
         <div className="space-y-3">
           {items.map((item, i) => (
-            <div key={i} className="border border-slate-200 rounded-xl overflow-hidden">
+            <div key={item.question || i} className="border border-slate-200 rounded-xl overflow-hidden">
               <button
                 className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-slate-50 transition-colors"
                 onClick={() => setOpen(open === i ? null : i)}

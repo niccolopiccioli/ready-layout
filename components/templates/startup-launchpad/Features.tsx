@@ -21,7 +21,7 @@ export function Features({ sectionTitle, accentColor, items }: FeaturesProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {items.map((item, i) => (
             <div
-              key={i}
+              key={item.title || i}
               className="p-8 rounded-2xl border border-slate-100 hover:shadow-lg transition-shadow"
             >
               <div

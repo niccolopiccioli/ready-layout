@@ -62,5 +62,7 @@ export function FieldRenderer({ field, value, onChange }: FieldRendererProps) {
           onChange={onChange}
         />
       )
+    default:
+      return null
   }
 }
