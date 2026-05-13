@@ -3,7 +3,6 @@
 import { useEditorStore } from '@/lib/store/editor-context'
 import { SectionNav } from './SectionNav'
 import { FieldRenderer } from './FieldRenderer'
-import { Button } from '@/components/ui/button'
 
 export function Sidebar() {
   const schema = useEditorStore((s) => s.schema)
@@ -15,17 +14,29 @@ export function Sidebar() {
   const section = schema.sections.find((s) => s.id === activeSection)
 
   return (
-    <div className="w-[400px] shrink-0 border-l border-slate-200 bg-white flex flex-col h-full">
-      <div className="p-4 border-b border-slate-100 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">Personalizza</h2>
-          <Button variant="ghost" size="sm" onClick={reset} className="text-xs text-slate-400">
+    <div
+      className="w-[320px] shrink-0 flex flex-col h-full"
+      style={{ borderLeft: '1px solid var(--ed-border)', background: 'var(--ed-panel)' }}
+    >
+      {/* Header */}
+      <div className="px-4 pt-3 pb-0" style={{ borderBottom: '1px solid var(--ed-border-subtle)' }}>
+        <div className="flex items-center justify-between mb-3">
+          <span className="ed-label" style={{ color: 'var(--ed-muted)' }}>Proprietà</span>
+          <button
+            onClick={reset}
+            className="text-[11px] transition-colors"
+            style={{ color: 'var(--ed-muted)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ed-secondary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ed-muted)')}
+          >
             Reset
-          </Button>
+          </button>
         </div>
         <SectionNav />
       </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
+
+      {/* Fields */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {section?.fields.map((field) => (
           <FieldRenderer
             key={field.id}

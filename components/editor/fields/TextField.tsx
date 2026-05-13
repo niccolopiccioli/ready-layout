@@ -1,9 +1,5 @@
 'use client'
 
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-
 interface TextFieldProps {
   id: string
   label: string
@@ -14,22 +10,24 @@ interface TextFieldProps {
 
 export function TextField({ id, label, value, multiline, onChange }: TextFieldProps) {
   return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-xs text-slate-500 uppercase tracking-wide">{label}</Label>
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="ed-label">{label}</label>
       {multiline ? (
-        <Textarea
+        <textarea
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={3}
-          className="resize-none text-sm"
+          className="ed-input resize-none"
+          style={{ lineHeight: '1.5' }}
         />
       ) : (
-        <Input
+        <input
           id={id}
+          type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="text-sm"
+          className="ed-input"
         />
       )}
     </div>

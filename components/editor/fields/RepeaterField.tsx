@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import type { Field, RepeaterItemField } from '@/lib/schemas/types'
 import { FieldRenderer } from '../FieldRenderer'
 
@@ -36,30 +34,43 @@ export function RepeaterField({ id, label, value, itemSchema, onChange }: Repeat
   }
 
   return (
-    <div className="space-y-2">
-      <Label className="text-xs text-slate-500 uppercase tracking-wide">{label}</Label>
-      <div className="space-y-2">
+    <div className="flex flex-col gap-1.5">
+      <span className="ed-label">{label}</span>
+      <div className="flex flex-col gap-1">
         {value.map((item, i) => (
-          <div key={item['id'] || item['title'] || item['name'] || item['question'] || i} className="border border-slate-200 rounded-lg overflow-hidden">
+          <div
+            key={item['id'] || item['title'] || item['name'] || item['question'] || i}
+            className="rounded overflow-hidden"
+            style={{ border: '1px solid var(--ed-border)' }}
+          >
             <button
-              className="w-full flex items-center justify-between px-3 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left transition-colors"
+              style={{ background: 'var(--ed-surface)', color: 'var(--ed-text)' }}
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
             >
-              <span className="font-medium text-slate-700">
-                {item['icon'] || item['title'] || item['name'] || item['question'] || `Item ${i + 1}`}
+              <span className="font-medium truncate">
+                {item['icon'] ? `${item['icon']} ` : ''}{item['title'] || item['name'] || item['question'] || `Item ${i + 1}`}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
                 <button
                   onClick={(e) => { e.stopPropagation(); removeItem(i) }}
-                  className="text-slate-400 hover:text-red-500 transition-colors px-1"
+                  className="text-[14px] transition-colors w-5 h-5 flex items-center justify-center rounded"
+                  style={{ color: 'var(--ed-muted)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'oklch(55% 0.2 25)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ed-muted)')}
                 >
                   ×
                 </button>
-                <span className="text-slate-400">{openIndex === i ? '▲' : '▼'}</span>
+                <span className="text-[10px]" style={{ color: 'var(--ed-muted)' }}>
+                  {openIndex === i ? '▲' : '▼'}
+                </span>
               </div>
             </button>
             {openIndex === i && (
-              <div className="px-3 pb-3 space-y-3 border-t border-slate-100 pt-3">
+              <div
+                className="px-3 pt-3 pb-3 flex flex-col gap-3"
+                style={{ borderTop: '1px solid var(--ed-border-subtle)', background: 'var(--ed-bg)' }}
+              >
                 {itemSchema.map((subField) => (
                   <FieldRenderer
                     key={subField.id}
@@ -73,9 +84,25 @@ export function RepeaterField({ id, label, value, itemSchema, onChange }: Repeat
           </div>
         ))}
       </div>
-      <Button variant="outline" size="sm" onClick={addItem} className="w-full text-xs">
-        + Aggiungi {label.toLowerCase()}
-      </Button>
+      <button
+        onClick={addItem}
+        className="text-[12px] font-medium py-2 rounded transition-colors"
+        style={{
+          border: '1px dashed var(--ed-border)',
+          color: 'var(--ed-secondary)',
+          background: 'transparent',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = 'var(--ed-accent)'
+          e.currentTarget.style.color = 'var(--ed-accent)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'var(--ed-border)'
+          e.currentTarget.style.color = 'var(--ed-secondary)'
+        }}
+      >
+        + Aggiungi
+      </button>
     </div>
   )
 }

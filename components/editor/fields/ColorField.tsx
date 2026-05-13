@@ -1,8 +1,5 @@
 'use client'
 
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-
 interface ColorFieldProps {
   id: string
   label: string
@@ -12,22 +9,30 @@ interface ColorFieldProps {
 
 export function ColorField({ id, label, value, onChange }: ColorFieldProps) {
   return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-xs text-slate-500 uppercase tracking-wide">{label}</Label>
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="ed-label">{label}</label>
       <div className="flex items-center gap-2">
+        <div
+          className="relative shrink-0 w-8 h-8 rounded overflow-hidden cursor-pointer"
+          style={{ border: '1px solid var(--ed-border)' }}
+        >
+          <div className="absolute inset-0" style={{ backgroundColor: value }} />
+          <input
+            type="color"
+            id={id}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+        </div>
         <input
-          type="color"
-          id={id}
+          type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-10 rounded cursor-pointer border border-slate-200 p-0.5"
-        />
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 text-sm font-mono"
+          className="ed-input font-mono text-[12px]"
           maxLength={7}
           placeholder="#000000"
+          spellCheck={false}
         />
       </div>
     </div>
