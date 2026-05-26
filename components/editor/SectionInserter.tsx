@@ -3,11 +3,22 @@
 import { useState } from 'react'
 
 interface SectionInserterProps {
-  onClick: () => void
+  insertAfterId: string | null
 }
 
-export function SectionInserter({ onClick }: SectionInserterProps) {
+export function SectionInserter({ insertAfterId }: SectionInserterProps) {
   const [hover, setHover] = useState(false)
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    // Inside iframe canvas: post to parent. If somehow rendered in parent
+    // (no parent != self), this still posts to itself and is harmless.
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'readylayout-open-picker', insertAfterId }, '*')
+    } else if (typeof window !== 'undefined') {
+      window.postMessage({ type: 'readylayout-open-picker', insertAfterId }, '*')
+    }
+  }
 
   return (
     <div
@@ -19,10 +30,7 @@ export function SectionInserter({ onClick }: SectionInserterProps) {
         transition: 'height var(--dur-hover) var(--ease-out)',
         cursor: 'pointer',
       }}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
+      onClick={handleClick}
     >
       <div
         style={{
