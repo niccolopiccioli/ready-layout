@@ -102,6 +102,7 @@ export interface EditorState {
   getElementOrder: (sectionId: string, fieldId: string) => number[]
   addSection: (presetId: string, insertAfterId: string | null) => void
   removeSection: (sectionId: string) => void
+  duplicateSection: (sectionId: string) => void
 }
 
 export function createEditorStore(schema: TemplateSchema) {
@@ -326,6 +327,38 @@ export function createEditorStore(schema: TemplateSchema) {
           values: newValues,
           elementOrder: newElementOrder,
           activeSection: newActive,
+          _past: past,
+          _future: [],
+          canUndo: true,
+          canRedo: false,
+        }
+      }),
+
+    duplicateSection: (sectionId) =>
+      set((state) => {
+        const section = state.sections.find((s) => s.id === sectionId)
+        const idx = state.sectionOrder.indexOf(sectionId)
+        if (!section || idx === -1) return {}
+
+        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
+        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
+
+        const taken = new Set(state.sections.map((s) => s.id))
+        const newId = uniqueSectionId(section.blockType, taken)
+        const dup: Section = structuredClone({ ...section, id: newId })
+        const dupValues = structuredClone(state.values[sectionId] ?? {})
+
+        const newSections = [...state.sections, dup]
+        const newOrder = [...state.sectionOrder]
+        newOrder.splice(idx + 1, 0, newId)
+        const newValues = { ...state.values, [newId]: dupValues }
+
+        saveToStorage(state.templateId, newValues, newOrder, state.elementOrder, newSections)
+
+        return {
+          sections: newSections,
+          sectionOrder: newOrder,
+          values: newValues,
           _past: past,
           _future: [],
           canUndo: true,

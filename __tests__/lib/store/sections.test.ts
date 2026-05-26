@@ -138,3 +138,28 @@ describe('store: removeSection', () => {
     expect(store.getState().elementOrder[newId]).toBeUndefined()
   })
 })
+
+describe('store: duplicateSection', () => {
+  it('duplica sezione esistente subito dopo l\'originale', () => {
+    const store = createEditorStore(startupLaunchpadSchema)
+    const firstId = store.getState().sectionOrder[0]
+    const beforeLen = store.getState().sectionOrder.length
+    store.getState().duplicateSection(firstId)
+    const state = store.getState()
+    expect(state.sectionOrder).toHaveLength(beforeLen + 1)
+    expect(state.sectionOrder[1]).not.toBe(firstId)
+    const dupId = state.sectionOrder[1]
+    const dup = state.sections.find((s) => s.id === dupId)!
+    const orig = state.sections.find((s) => s.id === firstId)!
+    expect(dup.blockType).toBe(orig.blockType)
+    expect(state.values[dupId]).toEqual(state.values[firstId])
+    expect(state.values[dupId]).not.toBe(state.values[firstId])
+  })
+
+  it('no-op se sectionId non esiste', () => {
+    const store = createEditorStore(startupLaunchpadSchema)
+    const before = store.getState().sectionOrder.length
+    store.getState().duplicateSection('nonexistent')
+    expect(store.getState().sectionOrder).toHaveLength(before)
+  })
+})
