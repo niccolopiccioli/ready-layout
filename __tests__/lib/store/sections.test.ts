@@ -82,6 +82,13 @@ describe('store: addSection', () => {
     store.getState().addSection('nonexistent', null)
     expect(store.getState().sectionOrder).toHaveLength(before)
   })
+
+  it('insertAfterId === "" inserisce all\'inizio', () => {
+    const store = createEditorStore(startupLaunchpadSchema)
+    store.getState().addSection('test-fake', '')
+    const state = store.getState()
+    expect(state.sectionOrder[0]).toMatch(/^hero-[a-z0-9]{6}$/)
+  })
 })
 
 describe('store: removeSection', () => {

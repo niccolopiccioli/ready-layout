@@ -275,9 +275,12 @@ export function createEditorStore(schema: TemplateSchema) {
         const newValues = structuredClone(preset.defaultValues)
 
         const newSections = [...state.sections, newSection]
-        const insertIndex = insertAfterId === null
-          ? state.sectionOrder.length
-          : state.sectionOrder.indexOf(insertAfterId) + 1
+        const insertIndex =
+          insertAfterId === null
+            ? state.sectionOrder.length
+            : insertAfterId === ''
+            ? 0
+            : state.sectionOrder.indexOf(insertAfterId) + 1
         const newOrder = [...state.sectionOrder]
         newOrder.splice(insertIndex, 0, newId)
 
