@@ -46,7 +46,6 @@ const BLOCK_ICONS: Record<string, string> = {
 }
 
 export function Sidebar() {
-  const schema = useEditorStore((s) => s.schema)
   const storeSections = useEditorStore((s) => s.sections)
   const sectionOrder = useEditorStore((s) => s.sectionOrder)
   const values = useEditorStore((s) => s.values)
