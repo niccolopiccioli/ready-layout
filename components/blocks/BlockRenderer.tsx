@@ -16,7 +16,7 @@ import { Stats } from './Stats'
 import { Schedule } from './Schedule'
 import { TextBlock } from './TextBlock'
 
-type AnyProps = Record<string, unknown>
+type AnyProps = Record<string, unknown> & { _sectionId: string; _variant?: string }
 
 const registry: Record<BlockType, (props: AnyProps) => React.ReactElement> = {
   hero: Hero as unknown as (props: AnyProps) => React.ReactElement,
@@ -39,11 +39,13 @@ const registry: Record<BlockType, (props: AnyProps) => React.ReactElement> = {
 
 interface BlockRendererProps {
   blockType: BlockType
+  sectionId: string
   values: Record<string, unknown>
+  variant?: string
 }
 
-export function BlockRenderer({ blockType, values }: BlockRendererProps) {
+export function BlockRenderer({ blockType, sectionId, values, variant }: BlockRendererProps) {
   const Block = registry[blockType]
   if (!Block) return null
-  return <Block {...values} />
+  return <Block {...values} _sectionId={sectionId} _variant={variant} />
 }
