@@ -110,7 +110,7 @@ const testimonialsFields: Section['fields'] = [
       { quote: 'Lo consiglio a tutti.', author: 'Giulia Bianchi', role: 'Cliente' },
     ],
     itemSchema: [
-      { id: 'quote',  type: 'text', label: 'Citazione', default: '"..."', multiline: true },
+      { id: 'quote',  type: 'text', label: 'Citazione', default: '"..."' },
       { id: 'author', type: 'text', label: 'Autore', default: 'Nome' },
       { id: 'role',   type: 'text', label: 'Ruolo', default: 'Cliente' },
     ],
