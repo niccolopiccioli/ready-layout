@@ -101,6 +101,7 @@ export interface EditorState {
   reorderElements: (sectionId: string, fieldId: string, fromIndex: number, toIndex: number) => void
   getElementOrder: (sectionId: string, fieldId: string) => number[]
   addSection: (presetId: string, insertAfterId: string | null) => void
+  removeSection: (sectionId: string) => void
 }
 
 export function createEditorStore(schema: TemplateSchema) {
@@ -290,6 +291,41 @@ export function createEditorStore(schema: TemplateSchema) {
           sectionOrder: newOrder,
           values: updatedValues,
           activeSection: newId,
+          _past: past,
+          _future: [],
+          canUndo: true,
+          canRedo: false,
+        }
+      }),
+
+    removeSection: (sectionId) =>
+      set((state) => {
+        if (state.sectionOrder[0] === sectionId) return {}
+        const idx = state.sectionOrder.indexOf(sectionId)
+        if (idx === -1) return {}
+
+        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
+        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
+
+        const newOrder = state.sectionOrder.filter((id) => id !== sectionId)
+        const newSections = state.sections.filter((s) => s.id !== sectionId)
+        const newValues = { ...state.values }
+        delete newValues[sectionId]
+        const newElementOrder = { ...state.elementOrder }
+        delete newElementOrder[sectionId]
+
+        const newActive = state.activeSection === sectionId
+          ? newOrder[Math.max(idx - 1, 0)] ?? newOrder[0] ?? ''
+          : state.activeSection
+
+        saveToStorage(state.templateId, newValues, newOrder, newElementOrder, newSections)
+
+        return {
+          sections: newSections,
+          sectionOrder: newOrder,
+          values: newValues,
+          elementOrder: newElementOrder,
+          activeSection: newActive,
           _past: past,
           _future: [],
           canUndo: true,

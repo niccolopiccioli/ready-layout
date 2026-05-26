@@ -83,3 +83,58 @@ describe('store: addSection', () => {
     expect(store.getState().sectionOrder).toHaveLength(before)
   })
 })
+
+describe('store: removeSection', () => {
+  beforeEach(() => {
+    LAYOUT_PRESETS.length = 0
+    LAYOUT_PRESETS.push(FAKE_PRESET)
+  })
+
+  it('rimuove una sezione esistente', () => {
+    const store = createEditorStore(startupLaunchpadSchema)
+    store.getState().addSection('test-fake', null)
+    const newId = store.getState().sectionOrder[store.getState().sectionOrder.length - 1]
+    const before = store.getState().sectionOrder.length
+    store.getState().removeSection(newId)
+    const state = store.getState()
+    expect(state.sectionOrder).toHaveLength(before - 1)
+    expect(state.sections.find((s) => s.id === newId)).toBeUndefined()
+    expect(state.values[newId]).toBeUndefined()
+  })
+
+  it('no-op se sectionId è il primo di sectionOrder', () => {
+    const store = createEditorStore(startupLaunchpadSchema)
+    const firstId = store.getState().sectionOrder[0]
+    const before = store.getState().sectionOrder.length
+    store.getState().removeSection(firstId)
+    expect(store.getState().sectionOrder).toHaveLength(before)
+  })
+
+  it('sposta activeSection alla precedente se la rimossa era attiva', () => {
+    const store = createEditorStore(startupLaunchpadSchema)
+    store.getState().addSection('test-fake', null)
+    const newId = store.getState().sectionOrder[store.getState().sectionOrder.length - 1]
+    store.getState().setActiveSection(newId)
+    store.getState().removeSection(newId)
+    expect(store.getState().activeSection).not.toBe(newId)
+    expect(store.getState().activeSection).toBeTruthy()
+  })
+
+  it('undo ripristina la sezione rimossa', () => {
+    const store = createEditorStore(startupLaunchpadSchema)
+    store.getState().addSection('test-fake', null)
+    const newId = store.getState().sectionOrder[store.getState().sectionOrder.length - 1]
+    store.getState().removeSection(newId)
+    store.getState().undo()
+    expect(store.getState().sectionOrder).toContain(newId)
+  })
+
+  it('rimuove anche elementOrder per la sezione', () => {
+    const store = createEditorStore(startupLaunchpadSchema)
+    store.getState().addSection('test-fake', null)
+    const newId = store.getState().sectionOrder[store.getState().sectionOrder.length - 1]
+    store.setState((s) => ({ elementOrder: { ...s.elementOrder, [newId]: { items: [0, 1] } } }))
+    store.getState().removeSection(newId)
+    expect(store.getState().elementOrder[newId]).toBeUndefined()
+  })
+})
