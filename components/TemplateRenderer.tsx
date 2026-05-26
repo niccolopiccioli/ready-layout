@@ -6,7 +6,6 @@ import { BlockRenderer } from '@/components/blocks/BlockRenderer'
 import { useEditorStore } from '@/lib/store/editor-context'
 import { GripVertical } from 'lucide-react'
 import { SectionInserter } from './editor/SectionInserter'
-import { LayoutPicker } from './editor/LayoutPicker'
 
 interface TemplateRendererProps {
   schema: TemplateSchema
@@ -37,42 +36,28 @@ export function TemplateRenderer({ schema, values, editable = true }: TemplateRe
 function EditableTemplate({ schema, values }: { schema: TemplateSchema; values: TemplateValues }) {
   const storeSections = useEditorStore((s) => s.sections)
   const sectionOrder = useEditorStore((s) => s.sectionOrder)
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const [insertAfterId, setInsertAfterId] = useState<string | null>(null)
 
   const orderedSections: Section[] = sectionOrder
     .map((id) => storeSections.find((s) => s.id === id))
     .filter((s): s is Section => s !== undefined)
 
-  const openPicker = (afterId: string | null) => {
-    setInsertAfterId(afterId)
-    setPickerOpen(true)
-  }
-
   return (
     <div className="font-sans" data-template={schema.id}>
       {/* Inserter all'inizio (sopra la prima sezione) */}
-      <SectionInserter onClick={() => openPicker('')} />
+      <SectionInserter insertAfterId="" />
       {orderedSections.map((section, index) => {
         const prevId = index === 0 ? null : orderedSections[index - 1].id
         return (
           <div key={section.id}>
-            {index > 0 && <SectionInserter onClick={() => openPicker(prevId)} />}
+            {index > 0 && <SectionInserter insertAfterId={prevId} />}
             <DraggableSection section={section} values={values[section.id] ?? {}} index={index} />
           </div>
         )
       })}
       {/* Inserter in coda */}
       {orderedSections.length > 0 && (
-        <SectionInserter
-          onClick={() => openPicker(orderedSections[orderedSections.length - 1].id)}
-        />
+        <SectionInserter insertAfterId={orderedSections[orderedSections.length - 1].id} />
       )}
-      <LayoutPicker
-        open={pickerOpen}
-        insertAfterId={insertAfterId}
-        onClose={() => setPickerOpen(false)}
-      />
     </div>
   )
 }
