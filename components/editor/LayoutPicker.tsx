@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useEditorStore } from '@/lib/store/editor-context'
 import { LAYOUT_PRESETS, type LayoutPreset } from '@/lib/presets/layouts'
-import { BlockRenderer } from '@/components/blocks/BlockRenderer'
+import { WireframePreview } from './picker/WireframePreview'
 
 interface LayoutPickerProps {
   open: boolean
@@ -207,27 +207,20 @@ function PresetCard({ preset, onClick }: { preset: LayoutPreset; onClick: () => 
         e.currentTarget.style.borderColor = 'var(--ed-border)'
       }}
     >
-      {/* Mini-render */}
+      {/* Wireframe preview */}
       <div style={{
         width: '100%',
         aspectRatio: '3 / 2',
         overflow: 'hidden',
         position: 'relative',
-        background: '#fff',
         pointerEvents: 'none',
       }}>
-        <div style={{
-          width: 1280,
-          transform: 'scale(0.1875)',
-          transformOrigin: 'top left',
-        }}>
-          <BlockRenderer
-            blockType={preset.blockType}
-            sectionId={preset.id}
-            values={preset.defaultValues}
-            variant={preset.variant}
-          />
-        </div>
+        <WireframePreview
+          blockType={preset.blockType}
+          accentColor={preset.defaultValues.accentColor as string | undefined}
+          bgColor={preset.defaultValues.bgColor as string | undefined}
+          textColor={preset.defaultValues.textColor as string | undefined}
+        />
       </div>
       {/* Label */}
       <div style={{
