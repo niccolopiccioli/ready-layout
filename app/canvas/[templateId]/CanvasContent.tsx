@@ -18,8 +18,13 @@ function StorageSyncer() {
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== key || !e.newValue) return
       try {
-        const { values, sectionOrder, elementOrder } = JSON.parse(e.newValue)
-        storeApi.setState({ values, sectionOrder, elementOrder: elementOrder ?? {} })
+        const { values, sectionOrder, elementOrder, sections } = JSON.parse(e.newValue)
+        storeApi.setState({
+          values,
+          sectionOrder,
+          elementOrder: elementOrder ?? {},
+          ...(sections ? { sections } : {}),
+        })
       } catch {}
     }
 
