@@ -1,10 +1,21 @@
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { getTemplateById } from '@/lib/templates'
-import { TemplateRenderer } from '@/components/TemplateRenderer'
+import { PreviewContent } from './PreviewContent'
 import type { TemplateValues } from '@/lib/schemas/types'
 
 interface PageProps {
   params: Promise<{ templateId: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { templateId } = await params
+  const schema = getTemplateById(templateId)
+  if (!schema) return {}
+  return {
+    title: `${schema.name} — Anteprima ReadyLayout`,
+    description: schema.description,
+  }
 }
 
 function buildDefaults(schema: ReturnType<typeof getTemplateById>): TemplateValues {
@@ -23,5 +34,5 @@ export default async function PreviewPage({ params }: PageProps) {
   if (!schema) notFound()
 
   const values = buildDefaults(schema)
-  return <TemplateRenderer schema={schema} values={values} />
+  return <PreviewContent schema={schema} defaultValues={values} />
 }
