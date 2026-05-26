@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useEditorStore } from '@/lib/store/editor-context'
 import { FieldRenderer } from './FieldRenderer'
-import { LayoutPicker } from './LayoutPicker'
+import { useLayoutPicker } from './picker/LayoutPickerContext'
 import { cssColorToHex } from '@/lib/colorUtils'
 import type { Field } from '@/lib/schemas/types'
 
@@ -56,8 +56,8 @@ export function Sidebar() {
   const reset = useEditorStore((s) => s.reset)
 
   const [confirmReset, setConfirmReset] = useState(false)
-  const [pickerOpen, setPickerOpen] = useState(false)
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null)
+  const { openPicker } = useLayoutPicker()
 
   const orderedSections = useMemo(() =>
     sectionOrder
@@ -254,7 +254,7 @@ export function Sidebar() {
           })}
         </div>
         <button
-          onClick={() => setPickerOpen(true)}
+          onClick={() => openPicker(orderedSections.length > 0 ? orderedSections[orderedSections.length - 1].id : null)}
           className="ed-press"
           style={{
             marginTop: 8,
@@ -399,11 +399,6 @@ export function Sidebar() {
         )}
       </div>
 
-      <LayoutPicker
-        open={pickerOpen}
-        insertAfterId={orderedSections.length > 0 ? orderedSections[orderedSections.length - 1].id : null}
-        onClose={() => setPickerOpen(false)}
-      />
     </aside>
   )
 }
