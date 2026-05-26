@@ -1,5 +1,7 @@
 import { createStore } from 'zustand/vanilla'
 import type { Section, TemplateSchema, TemplateValues } from '@/lib/schemas/types'
+import { LAYOUT_PRESETS } from '@/lib/presets/layouts'
+import { uniqueSectionId } from '@/lib/utils/uniqueId'
 
 const HISTORY_LIMIT = 100
 
@@ -98,6 +100,7 @@ export interface EditorState {
   reorderSections: (fromIndex: number, toIndex: number) => void
   reorderElements: (sectionId: string, fieldId: string, fromIndex: number, toIndex: number) => void
   getElementOrder: (sectionId: string, fieldId: string) => number[]
+  addSection: (presetId: string, insertAfterId: string | null) => void
 }
 
 export function createEditorStore(schema: TemplateSchema) {
@@ -258,6 +261,41 @@ export function createEditorStore(schema: TemplateSchema) {
       const state = get()
       return state.elementOrder[sectionId]?.[fieldId] || []
     },
+
+    addSection: (presetId, insertAfterId) =>
+      set((state) => {
+        const preset = LAYOUT_PRESETS.find((p) => p.id === presetId)
+        if (!preset) return {}
+
+        const taken = new Set(state.sections.map((s) => s.id))
+        const newId = uniqueSectionId(preset.blockType, taken)
+        const newSection = preset.build(newId)
+        const newValues = structuredClone(preset.defaultValues)
+
+        const newSections = [...state.sections, newSection]
+        const insertIndex = insertAfterId === null
+          ? state.sectionOrder.length
+          : state.sectionOrder.indexOf(insertAfterId) + 1
+        const newOrder = [...state.sectionOrder]
+        newOrder.splice(insertIndex, 0, newId)
+
+        const updatedValues = { ...state.values, [newId]: newValues }
+        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
+        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
+
+        saveToStorage(state.templateId, updatedValues, newOrder, state.elementOrder, newSections)
+
+        return {
+          sections: newSections,
+          sectionOrder: newOrder,
+          values: updatedValues,
+          activeSection: newId,
+          _past: past,
+          _future: [],
+          canUndo: true,
+          canRedo: false,
+        }
+      }),
   }))
 }
 
