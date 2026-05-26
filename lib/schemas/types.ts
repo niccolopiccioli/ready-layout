@@ -68,6 +68,7 @@ export interface Section {
   id: string
   label: string
   blockType: BlockType
+  variant?: string
   fields: Field[]
 }
 

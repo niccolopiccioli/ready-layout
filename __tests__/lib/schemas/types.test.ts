@@ -1,4 +1,4 @@
-import type { TemplateSchema, Field } from '@/lib/schemas/types'
+import type { TemplateSchema, Field, Section } from '@/lib/schemas/types'
 
 describe('TemplateSchema types', () => {
   it('accepts a valid schema shape', () => {
@@ -32,5 +32,25 @@ describe('TemplateSchema types', () => {
       ],
     }
     expect(field.type).toBe('repeater')
+  })
+})
+
+describe('Section type', () => {
+  it('accetta variant opzionale', () => {
+    const withVariant: Section = {
+      id: 's1',
+      label: 'L',
+      blockType: 'hero',
+      variant: 'centered',
+      fields: [],
+    }
+    const withoutVariant: Section = {
+      id: 's2',
+      label: 'L',
+      blockType: 'hero',
+      fields: [],
+    }
+    expect(withVariant.variant).toBe('centered')
+    expect(withoutVariant.variant).toBeUndefined()
   })
 })
