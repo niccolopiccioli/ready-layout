@@ -13,7 +13,9 @@ export interface LayoutPreset {
 const heroFields: Section['fields'] = [
   { id: 'headline',    type: 'text',  label: 'Titolo principale', default: 'Titolo' },
   { id: 'subheadline', type: 'text',  label: 'Sottotitolo',       default: 'Sottotitolo', multiline: true },
+  { id: 'badge',       type: 'text',  label: 'Etichetta (opz.)', default: '' },
   { id: 'ctaLabel',    type: 'text',  label: 'Testo CTA',         default: 'Inizia' },
+  { id: 'footnote',    type: 'text',  label: 'Nota sotto CTA',    default: '' },
   { id: 'bgColor',     type: 'color', label: 'Sfondo',            default: '#0f172a' },
   { id: 'textColor',   type: 'color', label: 'Testo',             default: '#f8fafc' },
   { id: 'accentColor', type: 'color', label: 'Colore accento',    default: '#3b82f6' },

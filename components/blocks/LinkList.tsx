@@ -1,3 +1,5 @@
+import { richProps } from '@/lib/richtext'
+
 interface LinkItem {
   label: string
   url: string
@@ -22,6 +24,8 @@ export function LinkList({ name, bio, avatar, bgColor, textColor, accentColor, l
         {avatar && (
           <div className="mb-5">
             <img
+              data-field="avatar"
+              data-field-type="image"
               src={avatar}
               alt={name}
               className="w-24 h-24 rounded-full object-cover"
@@ -31,16 +35,12 @@ export function LinkList({ name, bio, avatar, bgColor, textColor, accentColor, l
 
         {/* Name */}
         {name && (
-          <h1 className="text-xl font-semibold tracking-tight mb-2 text-center">
-            {name}
-          </h1>
+          <h1 data-field="name" data-field-type="text" className="text-xl font-semibold tracking-tight mb-2 text-center" {...richProps(name)} />
         )}
 
         {/* Bio */}
         {bio && (
-          <p className="text-sm opacity-60 text-center leading-relaxed mb-10 max-w-[40ch]">
-            {bio}
-          </p>
+          <p data-field="bio" data-field-type="text" className="text-sm opacity-60 text-center leading-relaxed mb-10 max-w-[40ch]" {...richProps(bio)} />
         )}
 
         {/* Links */}
@@ -61,9 +61,9 @@ export function LinkList({ name, bio, avatar, bgColor, textColor, accentColor, l
               }}
             >
               {link.emoji && (
-                <span className="text-base leading-none">{link.emoji}</span>
+                <span data-field={`links.${i}.emoji`} data-field-type="text" className="text-base leading-none" {...richProps(link.emoji)} />
               )}
-              <span className="flex-1 text-center">{link.label}</span>
+              <span data-field={`links.${i}.label`} data-field-type="text" className="flex-1 text-center" {...richProps(link.label)} />
             </a>
           ))}
         </div>

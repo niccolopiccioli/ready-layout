@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { TemplateRenderer } from '@/components/TemplateRenderer'
+import {
+  loadPersistedState,
+  subscribeEditorSync,
+  type EditorPersistPayload,
+} from '@/lib/editor-sync'
 import type { Section, TemplateSchema, TemplateValues } from '@/lib/schemas/types'
 
 interface PreviewContentProps {
@@ -14,6 +19,7 @@ interface HydrationState {
   sections: Section[]
   sectionOrder: string[]
   values: TemplateValues
+  elementOrder: Record<string, Record<string, number[]>>
 }
 
 function initialState(schema: TemplateSchema, defaults: TemplateValues): HydrationState {
@@ -21,21 +27,12 @@ function initialState(schema: TemplateSchema, defaults: TemplateValues): Hydrati
     sections: schema.sections,
     sectionOrder: schema.sections.map((s) => s.id),
     values: defaults,
-  }
-}
-
-function parseStorage(raw: string | null): Partial<HydrationState> | null {
-  if (!raw) return null
-  try {
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' ? parsed : null
-  } catch {
-    return null
+    elementOrder: {},
   }
 }
 
 function hydrateFrom(
-  parsed: Partial<HydrationState>,
+  parsed: Partial<EditorPersistPayload>,
   schema: TemplateSchema,
   defaults: TemplateValues
 ): HydrationState {
@@ -45,34 +42,35 @@ function hydrateFrom(
       ? parsed.sectionOrder
       : schema.sections.map((s) => s.id),
     values: parsed.values && typeof parsed.values === 'object' ? parsed.values : defaults,
+    elementOrder:
+      parsed.elementOrder && typeof parsed.elementOrder === 'object' ? parsed.elementOrder : {},
   }
+}
+
+function readPersisted(
+  templateId: string,
+  schema: TemplateSchema,
+  defaults: TemplateValues
+): HydrationState | null {
+  const payload = loadPersistedState(templateId)
+  if (!payload) return null
+  return hydrateFrom(payload, schema, defaults)
 }
 
 export function PreviewContent({ schema, defaultValues }: PreviewContentProps) {
   const searchParams = useSearchParams()
   const clean = searchParams.get('clean') === 'true'
-  const [state, setState] = useState<HydrationState>(() => initialState(schema, defaultValues))
+  const [state, setState] = useState<HydrationState>(() => {
+    if (typeof window === 'undefined' || clean) return initialState(schema, defaultValues)
+    return readPersisted(schema.id, schema, defaultValues) ?? initialState(schema, defaultValues)
+  })
 
   useEffect(() => {
     if (clean) return
-    if (typeof window === 'undefined') return
-    const raw = window.localStorage.getItem(`readylayout-${schema.id}`)
-    const parsed = parseStorage(raw)
-    if (!parsed) return
-    setState(hydrateFrom(parsed, schema, defaultValues))
-  }, [clean, schema, defaultValues])
 
-  useEffect(() => {
-    if (clean) return
-    const key = `readylayout-${schema.id}`
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== key) return
-      const parsed = parseStorage(e.newValue)
-      if (!parsed) return
-      setState(hydrateFrom(parsed, schema, defaultValues))
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
+    return subscribeEditorSync(schema.id, (payload) => {
+      setState(hydrateFrom(payload, schema, defaultValues))
+    })
   }, [clean, schema, defaultValues])
 
   const orderedSchema = useMemo<TemplateSchema>(() => {

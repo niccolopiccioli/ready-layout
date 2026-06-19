@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown, X, Plus } from 'lucide-react'
 import type { Field, RepeaterItemField } from '@/lib/schemas/types'
 import { FieldRenderer } from '../FieldRenderer'
 
@@ -44,26 +45,36 @@ export function RepeaterField({ id, label, value, itemSchema, onChange }: Repeat
             style={{ border: '1px solid var(--ed-border)' }}
           >
             <button
-              className="w-full flex items-center justify-between px-3 py-2 text-[13px] text-left transition-colors"
+              className="ed-press w-full flex items-center justify-between px-3 py-3 min-h-[44px] text-[13px] text-left"
               style={{ background: 'var(--ed-surface)', color: 'var(--ed-text)' }}
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
+              aria-expanded={openIndex === i}
             >
               <span className="font-medium truncate">
                 {item['icon'] ? `${item['icon']} ` : ''}{item['title'] || item['name'] || item['question'] || `Item ${i + 1}`}
               </span>
-              <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                <button
+              <div className="flex items-center gap-0.5 shrink-0 ml-2">
+                <span
+                  role="button"
+                  tabIndex={0}
                   onClick={(e) => { e.stopPropagation(); removeItem(i) }}
-                  className="text-[14px] transition-colors w-5 h-5 flex items-center justify-center rounded"
-                  style={{ color: 'var(--ed-muted)' }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); removeItem(i) } }}
+                  className="ed-press inline-flex items-center justify-center rounded"
+                  style={{ color: 'var(--ed-muted)', width: 20, height: 20, cursor: 'pointer' }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = 'oklch(55% 0.2 25)')}
                   onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ed-muted)')}
+                  aria-label="Rimuovi elemento"
                 >
-                  ×
-                </button>
-                <span className="text-[10px]" style={{ color: 'var(--ed-muted)' }}>
-                  {openIndex === i ? '▲' : '▼'}
+                  <X className="w-3 h-3" />
                 </span>
+                <ChevronDown
+                  className="w-3.5 h-3.5"
+                  style={{
+                    color: 'var(--ed-muted)',
+                    transition: 'transform var(--dur-hover) var(--ease-out)',
+                    transform: openIndex === i ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                />
               </div>
             </button>
             {openIndex === i && (
@@ -86,7 +97,7 @@ export function RepeaterField({ id, label, value, itemSchema, onChange }: Repeat
       </div>
       <button
         onClick={addItem}
-        className="text-[12px] font-medium py-2 rounded transition-colors"
+        className="ed-press text-[12px] font-medium py-3 min-h-[44px] rounded inline-flex items-center justify-center gap-1.5"
         style={{
           border: '1px dashed var(--ed-border)',
           color: 'var(--ed-secondary)',
@@ -101,7 +112,8 @@ export function RepeaterField({ id, label, value, itemSchema, onChange }: Repeat
           e.currentTarget.style.color = 'var(--ed-secondary)'
         }}
       >
-        + Aggiungi
+        <Plus className="w-3.5 h-3.5" />
+        Aggiungi
       </button>
     </div>
   )

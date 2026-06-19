@@ -1,3 +1,5 @@
+import { richProps } from '@/lib/richtext'
+
 interface MenuGroup {
   groupName: string
   items: string
@@ -28,14 +30,10 @@ export function Menu({ sectionTitle, subtext, groups }: MenuProps) {
     <section className="py-20 md:py-28 bg-stone-50">
       <div className="max-w-5xl mx-auto px-6">
         {sectionTitle && (
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-stone-900 mb-3">
-            {sectionTitle}
-          </h2>
+          <h2 data-field="sectionTitle" data-field-type="text" className="text-3xl md:text-4xl font-semibold tracking-tight text-stone-900 mb-3" {...richProps(sectionTitle)} />
         )}
         {subtext && (
-          <p className="text-base text-stone-500 mb-12 md:mb-16 leading-relaxed max-w-[55ch]">
-            {subtext}
-          </p>
+          <p data-field="subtext" data-field-type="text" className="text-base text-stone-500 mb-12 md:mb-16 leading-relaxed max-w-[55ch]" {...richProps(subtext)} />
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
@@ -43,9 +41,7 @@ export function Menu({ sectionTitle, subtext, groups }: MenuProps) {
             const parsed = parseMenuItems(group.items)
             return (
               <div key={gi}>
-                <h3 className="text-sm font-medium tracking-tight letter-spacing-tight text-stone-900 uppercase tracking-wide mb-6 pb-3 border-b border-stone-200">
-                  {group.groupName}
-                </h3>
+                <h3 data-field={`groups.${gi}.groupName`} data-field-type="text" className="text-sm font-medium tracking-tight letter-spacing-tight text-stone-900 uppercase tracking-wide mb-6 pb-3 border-b border-stone-200" {...richProps(group.groupName)} />
                 <ul className="flex flex-col gap-4">
                   {parsed.map((item, ii) => (
                     <li key={ii} className="flex items-baseline gap-2">

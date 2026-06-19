@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEditorStore } from '@/lib/store/editor-context'
 import { LAYOUT_PRESETS, type LayoutPreset } from '@/lib/presets/layouts'
 import { WireframePreview } from './picker/WireframePreview'
@@ -26,21 +26,20 @@ export function LayoutPicker({ open, insertAfterId, onClose }: LayoutPickerProps
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<LayoutPreset['category'] | 'all'>('all')
 
+  const handleClose = useCallback(() => {
+    setQuery('')
+    setCategory('all')
+    onClose()
+  }, [onClose])
+
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') handleClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
-
-  useEffect(() => {
-    if (!open) {
-      setQuery('')
-      setCategory('all')
-    }
-  }, [open])
+  }, [open, handleClose])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -58,7 +57,7 @@ export function LayoutPicker({ open, insertAfterId, onClose }: LayoutPickerProps
       role="dialog"
       aria-modal="true"
       aria-label="Aggiungi sezione"
-      onClick={onClose}
+      onClick={handleClose}
       style={{
         position: 'fixed',
         inset: 0,
@@ -96,7 +95,7 @@ export function LayoutPicker({ open, insertAfterId, onClose }: LayoutPickerProps
             Aggiungi sezione
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Chiudi"
             className="ed-press"
             style={{
@@ -170,7 +169,7 @@ export function LayoutPicker({ open, insertAfterId, onClose }: LayoutPickerProps
                   preset={preset}
                   onClick={() => {
                     addSection(preset.id, insertAfterId)
-                    onClose()
+                    handleClose()
                   }}
                 />
               ))}

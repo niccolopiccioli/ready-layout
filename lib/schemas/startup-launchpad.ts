@@ -13,7 +13,9 @@ export const startupLaunchpadSchema: TemplateSchema = {
       fields: [
         { id: 'headline',    type: 'text',  label: 'Titolo principale', default: 'Il tuo prodotto\ncambia tutto.' },
         { id: 'subheadline', type: 'text',  label: 'Sottotitolo',       default: 'Costruito per team moderni. Veloce, semplice, potente.', multiline: true },
+        { id: 'badge',       type: 'text',  label: 'Etichetta',         default: 'Nuovo ✦ Appena lanciato' },
         { id: 'ctaLabel',    type: 'text',  label: 'Testo CTA',         default: 'Inizia gratis →' },
+        { id: 'footnote',    type: 'text',  label: 'Nota sotto CTA',    default: 'Nessuna carta di credito richiesta' },
         { id: 'bgColor',     type: 'color', label: 'Sfondo',            default: '#0f172a' },
         { id: 'textColor',   type: 'color', label: 'Testo',             default: '#f8fafc' },
         { id: 'accentColor', type: 'color', label: 'Colore accento',    default: '#6366f1' },

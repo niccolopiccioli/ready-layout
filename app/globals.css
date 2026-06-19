@@ -75,6 +75,16 @@
   --ed-muted:          oklch(60%   0.009 255);
   --ed-accent:         oklch(52%   0.15  155);
   --ed-accent-surface: oklch(93%   0.04  155);
+  --ed-accent-text:    oklch(35%   0.12  155);
+  --ed-device-frame:   oklch(18%   0.012 255);
+
+  /* Motion — strong curves, not CSS defaults */
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press:   140ms;
+  --dur-hover:   160ms;
+  --dur-pop:     180ms;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -90,6 +100,8 @@
     --ed-muted:          oklch(40%   0.007 255);
     --ed-accent:         oklch(70%   0.14  155);
     --ed-accent-surface: oklch(18%   0.06  155);
+    --ed-accent-text:    oklch(82%   0.10  155);
+    --ed-device-frame:   oklch(22%   0.012 255);
   }
 }
 
@@ -166,6 +178,10 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, a, [role="button"] {
+    touch-action: manipulation;
   }
   body {
     @apply bg-background text-foreground;
@@ -176,6 +192,11 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ─── Font override: let canvas font-family propagate into Tailwind font-* classes ─── */
+[data-editor-canvas] * {
+  font-family: inherit;
 }
 
 /* ─── Editor-specific utilities ─── */
@@ -194,7 +215,7 @@
   border-radius: 5px;
   color: var(--ed-text);
   font-size: 13px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   width: 100%;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -203,4 +224,51 @@
   outline: none;
   border-color: var(--ed-accent);
   box-shadow: 0 0 0 2px var(--ed-accent-surface);
+}
+
+/* Pressable element — scale on :active for tactile feedback */
+.ed-press {
+  transition: transform var(--dur-press) var(--ease-out),
+              background-color var(--dur-hover) var(--ease-out),
+              color var(--dur-hover) var(--ease-out),
+              border-color var(--dur-hover) var(--ease-out);
+}
+.ed-press:active {
+  transform: scale(0.97);
+}
+
+/* Reduced motion — keep opacity/color, drop transforms */
+@media (prefers-reduced-motion: reduce) {
+  .ed-press,
+  .ed-press:active {
+    transform: none;
+    transition-duration: 0ms;
+  }
+}
+
+/* Hide scrollbar cross-browser (used on editor toolbar overflow) */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Rich-text editor (Tiptap) ─── */
+.rt-editor .tiptap {
+  outline: none;
+  min-height: 1em;
+  cursor: text;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.rt-editor .tiptap p { margin: 0; }
+.rt-editor .tiptap p + p { margin-top: 0.35em; }
+
+/* Reset paragraph margins inside rendered rich-text fields */
+[data-field-type="text"] p { margin: 0; }
+[data-field-type="text"] p + p { margin-top: 0.35em; }
+
+/* Brand font for ReadyLayout */
+.font-brand {
+  font-family: var(--font-syne), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }

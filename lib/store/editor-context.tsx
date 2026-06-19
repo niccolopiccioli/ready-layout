@@ -1,9 +1,10 @@
 'use client'
 
-import { createContext, useContext, useMemo, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { useStore } from 'zustand'
 import { createEditorStore, type EditorStore, type EditorState } from './editor.store'
 import type { TemplateSchema } from '@/lib/schemas/types'
+import { useEditorSync } from '@/lib/hooks/useEditorSync'
 
 const EditorContext = createContext<EditorStore | null>(null)
 
@@ -12,30 +13,17 @@ interface EditorProviderProps {
   children: ReactNode
 }
 
+function EditorSync({ store, templateId }: { store: EditorStore; templateId: string }) {
+  useEditorSync(store, templateId)
+  return null
+}
+
 export function EditorProvider({ schema, children }: EditorProviderProps) {
   const store = useMemo(() => createEditorStore(schema), [schema.id])
 
-  // Receive updates written by other contexts (e.g. inline edits from the canvas iframe)
-  useEffect(() => {
-    const key = `readylayout-${schema.id}`
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key !== key || !e.newValue) return
-      try {
-        const { values, sectionOrder, elementOrder, sections } = JSON.parse(e.newValue)
-        store.setState({
-          values,
-          sectionOrder,
-          elementOrder: elementOrder ?? {},
-          ...(sections ? { sections } : {}),
-        })
-      } catch {}
-    }
-    window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
-  }, [store, schema.id])
-
   return (
     <EditorContext.Provider value={store}>
+      <EditorSync store={store} templateId={schema.id} />
       {children}
     </EditorContext.Provider>
   )

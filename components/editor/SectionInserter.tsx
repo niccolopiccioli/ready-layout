@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { postToParent, postToWindow } from '@/lib/editor-messaging'
 
 interface SectionInserterProps {
   insertAfterId: string | null
@@ -14,9 +15,9 @@ export function SectionInserter({ insertAfterId }: SectionInserterProps) {
     // Inside iframe canvas: post to parent. If somehow rendered in parent
     // (no parent != self), this still posts to itself and is harmless.
     if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
-      window.parent.postMessage({ type: 'readylayout-open-picker', insertAfterId }, '*')
+      postToParent({ type: 'readylayout-open-picker', insertAfterId })
     } else if (typeof window !== 'undefined') {
-      window.postMessage({ type: 'readylayout-open-picker', insertAfterId }, '*')
+      postToWindow({ type: 'readylayout-open-picker', insertAfterId })
     }
   }
 

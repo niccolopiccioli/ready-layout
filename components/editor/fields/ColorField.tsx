@@ -1,5 +1,7 @@
 'use client'
 
+import { cssColorToHex } from '@/lib/colorUtils'
+
 interface ColorFieldProps {
   id: string
   label: string
@@ -13,14 +15,14 @@ export function ColorField({ id, label, value, onChange }: ColorFieldProps) {
       <label htmlFor={id} className="ed-label">{label}</label>
       <div className="flex items-center gap-2">
         <div
-          className="relative shrink-0 w-8 h-8 rounded overflow-hidden cursor-pointer"
+          className="relative shrink-0 w-10 h-10 rounded overflow-hidden cursor-pointer"
           style={{ border: '1px solid var(--ed-border)' }}
         >
           <div className="absolute inset-0" style={{ backgroundColor: value }} />
           <input
             type="color"
             id={id}
-            value={value}
+            value={cssColorToHex(value)}
             onChange={(e) => onChange(e.target.value)}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />

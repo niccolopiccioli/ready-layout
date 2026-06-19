@@ -2,6 +2,7 @@ import { createStore } from 'zustand/vanilla'
 import type { Section, TemplateSchema, TemplateValues } from '@/lib/schemas/types'
 import { LAYOUT_PRESETS } from '@/lib/presets/layouts'
 import { uniqueSectionId } from '@/lib/utils/uniqueId'
+import { loadPersistedState, persistEditorState } from '@/lib/editor-sync'
 
 const HISTORY_LIMIT = 100
 
@@ -29,45 +30,38 @@ function setNestedValue(obj: Record<string, unknown>, path: string, value: unkno
   return result
 }
 
-interface StoredPayload {
-  values: TemplateValues
-  sectionOrder: string[]
-  elementOrder: Record<string, Record<string, number[]>>
-  sections?: Section[]
-}
-
-function loadFromStorage(templateId: string): StoredPayload | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const saved = localStorage.getItem(`readylayout-${templateId}`)
-    return saved ? JSON.parse(saved) : null
-  } catch {
-    return null
-  }
-}
-
-function saveToStorage(
-  templateId: string,
-  values: TemplateValues,
-  sectionOrder: string[],
-  elementOrder: Record<string, Record<string, number[]>>,
-  sections: Section[]
-) {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(
-      `readylayout-${templateId}`,
-      JSON.stringify({ values, sectionOrder, elementOrder, sections })
-    )
-  } catch {
-    // storage full or private browsing — continue silently
-  }
-}
-
 interface Snapshot {
   values: TemplateValues
   sectionOrder: string[]
+  elementOrder: Record<string, Record<string, number[]>>
   sections: Section[]
+}
+
+function snapshotFromState(state: {
+  values: TemplateValues
+  sectionOrder: string[]
+  elementOrder: Record<string, Record<string, number[]>>
+  sections: Section[]
+}): Snapshot {
+  return {
+    values: state.values,
+    sectionOrder: state.sectionOrder,
+    elementOrder: state.elementOrder,
+    sections: state.sections,
+  }
+}
+
+function persist(
+  templateId: string,
+  state: {
+    values: TemplateValues
+    sectionOrder: string[]
+    elementOrder: Record<string, Record<string, number[]>>
+    sections: Section[]
+  },
+  immediate = false
+) {
+  persistEditorState(templateId, snapshotFromState(state), { immediate })
 }
 
 export interface EditorState {
@@ -107,7 +101,7 @@ export interface EditorState {
 
 export function createEditorStore(schema: TemplateSchema) {
   const defaults = buildDefaults(schema)
-  const saved = loadFromStorage(schema.id)
+  const saved = loadPersistedState(schema.id)
   const defaultSections = structuredClone(schema.sections)
   const initialSections = saved?.sections ?? defaultSections
   const initialValues = saved?.values || structuredClone(defaults)
@@ -130,8 +124,7 @@ export function createEditorStore(schema: TemplateSchema) {
 
     updateField: (sectionId, fieldId, value) =>
       set((state) => {
-        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
-        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
+        const past = [...state._past, snapshotFromState(state)].slice(-HISTORY_LIMIT)
 
         const sectionValues = state.values[sectionId] || {}
         const updatedValues: Record<string, unknown> = fieldId.includes('.')
@@ -139,7 +132,8 @@ export function createEditorStore(schema: TemplateSchema) {
           : { ...sectionValues, [fieldId]: value }
 
         const newValues = { ...state.values, [sectionId]: updatedValues }
-        saveToStorage(state.templateId, newValues, state.sectionOrder, state.elementOrder, state.sections)
+        const next = { ...state, values: newValues }
+        persist(state.templateId, next)
 
         return { values: newValues, _past: past, _future: [], canUndo: true, canRedo: false }
       }),
@@ -148,18 +142,23 @@ export function createEditorStore(schema: TemplateSchema) {
 
     reset: () => {
       const state = get()
-      const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
-      const freshValues = structuredClone(defaults)
-      const freshSections = structuredClone(schema.sections)
-      const freshOrder = freshSections.map((s) => s.id)
-      saveToStorage(schema.id, freshValues, freshOrder, {}, freshSections)
-      set({
+      const freshValues = Object.fromEntries(
+        state.sections.map((section) => [
+          section.id,
+          Object.fromEntries(section.fields.map((field) => [field.id, field.default])),
+        ])
+      ) as TemplateValues
+      const next = {
         values: freshValues,
-        sections: freshSections,
-        sectionOrder: freshOrder,
-        elementOrder: {},
-        activeSection: freshSections[0]?.id ?? '',
-        _past: [...state._past, snapshot].slice(-HISTORY_LIMIT),
+        sections: state.sections,
+        sectionOrder: state.sectionOrder,
+        elementOrder: {} as Record<string, Record<string, number[]>>,
+      }
+      persist(state.templateId, next, true)
+      set({
+        ...next,
+        activeSection: state.sectionOrder[0] ?? state.sections[0]?.id ?? '',
+        _past: [...state._past, snapshotFromState(state)].slice(-HISTORY_LIMIT),
         _future: [],
         canUndo: true,
         canRedo: false,
@@ -171,13 +170,13 @@ export function createEditorStore(schema: TemplateSchema) {
         if (state._past.length === 0) return {}
         const prev = state._past[state._past.length - 1]
         const past = state._past.slice(0, -1)
-        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
-        const future = [snapshot, ...state._future].slice(0, HISTORY_LIMIT)
-        saveToStorage(state.templateId, prev.values, prev.sectionOrder, state.elementOrder, prev.sections)
+        const future = [snapshotFromState(state), ...state._future].slice(0, HISTORY_LIMIT)
+        persist(state.templateId, { ...state, ...prev }, true)
         return {
           values: prev.values,
           sections: prev.sections,
           sectionOrder: prev.sectionOrder,
+          elementOrder: prev.elementOrder,
           _past: past,
           _future: future,
           canUndo: past.length > 0,
@@ -188,15 +187,15 @@ export function createEditorStore(schema: TemplateSchema) {
     redo: () =>
       set((state) => {
         if (state._future.length === 0) return {}
-        const next = state._future[0]
+        const nextSnap = state._future[0]
         const future = state._future.slice(1)
-        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
-        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
-        saveToStorage(state.templateId, next.values, next.sectionOrder, state.elementOrder, next.sections)
+        const past = [...state._past, snapshotFromState(state)].slice(-HISTORY_LIMIT)
+        persist(state.templateId, { ...state, ...nextSnap }, true)
         return {
-          values: next.values,
-          sections: next.sections,
-          sectionOrder: next.sectionOrder,
+          values: nextSnap.values,
+          sections: nextSnap.sections,
+          sectionOrder: nextSnap.sectionOrder,
+          elementOrder: nextSnap.elementOrder,
           _past: past,
           _future: future,
           canUndo: true,
@@ -217,19 +216,18 @@ export function createEditorStore(schema: TemplateSchema) {
 
     reorderSections: (fromIndex, toIndex) =>
       set((state) => {
-        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
-        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
+        const past = [...state._past, snapshotFromState(state)].slice(-HISTORY_LIMIT)
         const newOrder = [...state.sectionOrder]
         const [removed] = newOrder.splice(fromIndex, 1)
         newOrder.splice(toIndex, 0, removed)
-        saveToStorage(state.templateId, state.values, newOrder, state.elementOrder, state.sections)
+        const next = { ...state, sectionOrder: newOrder }
+        persist(state.templateId, next, true)
         return { sectionOrder: newOrder, _past: past, _future: [], canUndo: true, canRedo: false }
       }),
 
     reorderElements: (sectionId, fieldId, fromIndex, toIndex) =>
       set((state) => {
-        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
-        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
+        const past = [...state._past, snapshotFromState(state)].slice(-HISTORY_LIMIT)
 
         const sectionValues = state.values[sectionId] || {}
         const currentArray = (sectionValues[fieldId] as unknown[]) || []
@@ -248,7 +246,8 @@ export function createEditorStore(schema: TemplateSchema) {
             [fieldId]: newArray.map((_, i) => i),
           },
         }
-        saveToStorage(state.templateId, newValues, state.sectionOrder, newElementOrder, state.sections)
+        const next = { ...state, values: newValues, elementOrder: newElementOrder }
+        persist(state.templateId, next, true)
         return {
           values: newValues,
           elementOrder: newElementOrder,
@@ -285,10 +284,15 @@ export function createEditorStore(schema: TemplateSchema) {
         newOrder.splice(insertIndex, 0, newId)
 
         const updatedValues = { ...state.values, [newId]: newValues }
-        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
-        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
+        const past = [...state._past, snapshotFromState(state)].slice(-HISTORY_LIMIT)
 
-        saveToStorage(state.templateId, updatedValues, newOrder, state.elementOrder, newSections)
+        const next = {
+          ...state,
+          sections: newSections,
+          sectionOrder: newOrder,
+          values: updatedValues,
+        }
+        persist(state.templateId, next, true)
 
         return {
           sections: newSections,
@@ -308,8 +312,7 @@ export function createEditorStore(schema: TemplateSchema) {
         const idx = state.sectionOrder.indexOf(sectionId)
         if (idx === -1) return {}
 
-        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
-        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
+        const past = [...state._past, snapshotFromState(state)].slice(-HISTORY_LIMIT)
 
         const newOrder = state.sectionOrder.filter((id) => id !== sectionId)
         const newSections = state.sections.filter((s) => s.id !== sectionId)
@@ -322,7 +325,14 @@ export function createEditorStore(schema: TemplateSchema) {
           ? newOrder[Math.max(idx - 1, 0)] ?? newOrder[0] ?? ''
           : state.activeSection
 
-        saveToStorage(state.templateId, newValues, newOrder, newElementOrder, newSections)
+        const next = {
+          ...state,
+          sections: newSections,
+          sectionOrder: newOrder,
+          values: newValues,
+          elementOrder: newElementOrder,
+        }
+        persist(state.templateId, next, true)
 
         return {
           sections: newSections,
@@ -343,8 +353,7 @@ export function createEditorStore(schema: TemplateSchema) {
         const idx = state.sectionOrder.indexOf(sectionId)
         if (!section || idx === -1) return {}
 
-        const snapshot: Snapshot = { values: state.values, sectionOrder: state.sectionOrder, sections: state.sections }
-        const past = [...state._past, snapshot].slice(-HISTORY_LIMIT)
+        const past = [...state._past, snapshotFromState(state)].slice(-HISTORY_LIMIT)
 
         const taken = new Set(state.sections.map((s) => s.id))
         const newId = uniqueSectionId(section.blockType, taken)
@@ -356,7 +365,8 @@ export function createEditorStore(schema: TemplateSchema) {
         newOrder.splice(idx + 1, 0, newId)
         const newValues = { ...state.values, [newId]: dupValues }
 
-        saveToStorage(state.templateId, newValues, newOrder, state.elementOrder, newSections)
+        const next = { ...state, sections: newSections, sectionOrder: newOrder, values: newValues }
+        persist(state.templateId, next, true)
 
         return {
           sections: newSections,

@@ -1,3 +1,5 @@
+import { richProps } from '@/lib/richtext'
+
 interface Plan {
   name: string
   price: string
@@ -11,35 +13,34 @@ interface PricingProps {
   sectionTitle: string
   accentColor: string
   plans: Plan[]
+  _sectionId: string
 }
 
-export function Pricing({ sectionTitle, accentColor, plans }: PricingProps) {
+export function Pricing({ sectionTitle, accentColor, plans, _sectionId }: PricingProps) {
   return (
-    <section className="bg-slate-50 py-24">
+    <section data-section={_sectionId} className="bg-slate-50 py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-6">
-        <h2 className="text-4xl font-bold text-slate-900 text-center mb-4">{sectionTitle}</h2>
-        <p className="text-center text-slate-500 mb-16">Scala quando sei pronto.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        <h2 data-field="sectionTitle" data-field-type="text" className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-3" {...richProps(sectionTitle)} />
+        <p className="text-center text-slate-500 mb-10 md:mb-16">Scala quando sei pronto.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 items-stretch">
           {plans.map((plan, i) => {
             const isHighlighted = plan.highlighted === 'true'
             const features = plan.features.split('|').filter(Boolean)
             return (
               <div
                 key={plan.name || i}
-                className={`rounded-2xl p-8 flex flex-col ${
+                className={`rounded-2xl p-6 md:p-8 flex flex-col ${
                   isHighlighted
-                    ? 'text-white shadow-xl scale-[1.03]'
+                    ? 'text-white shadow-xl md:scale-[1.03]'
                     : 'bg-white border border-slate-200'
                 }`}
                 style={isHighlighted ? { backgroundColor: accentColor } : {}}
               >
                 <div className="mb-6">
-                  <p className={`text-sm font-semibold uppercase tracking-widest mb-2 ${isHighlighted ? 'opacity-80' : 'text-slate-500'}`}>
-                    {plan.name}
-                  </p>
+                  <p data-field={`plans.${i}.name`} data-field-type="text" className={`text-sm font-semibold uppercase tracking-widest mb-2 ${isHighlighted ? 'opacity-80' : 'text-slate-500'}`} {...richProps(plan.name)} />
                   <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-bold">€{plan.price}</span>
-                    <span className={`text-sm ${isHighlighted ? 'opacity-70' : 'text-slate-400'}`}>{plan.period}</span>
+                    <span data-field={`plans.${i}.price`} data-field-type="text" className="text-5xl font-bold">€<span {...richProps(plan.price)} /></span>
+                    <span data-field={`plans.${i}.period`} data-field-type="text" className={`text-sm ${isHighlighted ? 'opacity-70' : 'text-slate-400'}`} {...richProps(plan.period)} />
                   </div>
                 </div>
                 <ul className="space-y-3 flex-1 mb-8">
@@ -51,13 +52,14 @@ export function Pricing({ sectionTitle, accentColor, plans }: PricingProps) {
                   ))}
                 </ul>
                 <button
+                  data-field={`plans.${i}.cta`}
+                  data-field-type="text"
                   className={`w-full py-3 rounded-full text-sm font-semibold transition-all hover:opacity-90 ${
                     isHighlighted ? 'bg-white' : 'border border-current'
                   }`}
                   style={isHighlighted ? { color: accentColor } : { color: accentColor }}
-                >
-                  {plan.cta}
-                </button>
+                  {...richProps(plan.cta)}
+                />
               </div>
             )
           })}

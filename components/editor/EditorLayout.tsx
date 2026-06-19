@@ -12,6 +12,9 @@ import { LayoutPickerProvider, useLayoutPicker } from './picker/LayoutPickerCont
 import { Download, FileJson, FileCode, Check, Shuffle, Palette, Eye, Smartphone, Tablet, Monitor, PanelLeft, PanelLeftClose, Undo2, Redo2 } from 'lucide-react'
 import { fontMap, fontList, fontCategories, getRandomFont } from '@/lib/fonts'
 import { themes, type DeviceType } from '@/lib/themes'
+import { isTrustedEditorMessage } from '@/lib/editor-messaging'
+import { applyThemeToSections, randomizeSections } from '@/lib/editor-field-utils'
+import { usePersistFlush } from '@/lib/hooks/usePersistFlush'
 
 // Sample content for randomization
 const sampleHeadlines = [
@@ -60,8 +63,8 @@ function generateDarkPalette(): { bg: string; text: string; accent: string } {
 export function EditorLayout() {
   const templateName = useEditorStore((s) => s.schema.name)
   const templateId = useEditorStore((s) => s.schema.id)
-  const schema = useEditorStore((s) => s.schema)
-  const values = useEditorStore((s) => s.values)
+  const storeSections = useEditorStore((s) => s.sections)
+  const exportTemplate = useEditorStore((s) => s.exportTemplate)
   const updateField = useEditorStore((s) => s.updateField)
   const undo = useEditorStore((s) => s.undo)
   const redo = useEditorStore((s) => s.redo)
@@ -81,6 +84,8 @@ export function EditorLayout() {
   const [copied, setCopied] = useState(false)
   const [showSidebar, setShowSidebar] = useState(true)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  usePersistFlush()
 
   useEffect(() => {
     const canvas = document.querySelector('[data-editor-canvas]') as HTMLElement | null
@@ -102,7 +107,7 @@ export function EditorLayout() {
   }, [undo, redo])
 
   const handleExportJSON = () => {
-    const data = { schema, values }
+    const data = exportTemplate()
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -116,7 +121,7 @@ export function EditorLayout() {
   }
 
   const handleCopyJSON = () => {
-    const data = { schema, values }
+    const data = exportTemplate()
     navigator.clipboard.writeText(JSON.stringify(data, null, 2))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -124,57 +129,31 @@ export function EditorLayout() {
   }
 
   const applyTheme = useCallback((theme: typeof themes[0]) => {
-    schema.sections.forEach(section => {
-      section.fields.forEach(field => {
-        if (field.type === 'color') {
-          const fieldIdLower = field.id.toLowerCase()
-          if (fieldIdLower.includes('bg') || fieldIdLower.includes('background')) {
-            updateField(section.id, field.id, theme.bg)
-          } else if (fieldIdLower.includes('text') || fieldIdLower.includes('color')) {
-            updateField(section.id, field.id, theme.text)
-          } else if (fieldIdLower.includes('accent')) {
-            updateField(section.id, field.id, theme.accent)
-          }
-        }
-      })
-    })
+    applyThemeToSections(storeSections, theme, updateField)
     setShowThemeMenu(false)
-  }, [schema, updateField])
+  }, [storeSections, updateField])
 
   const randomizeEverything = useCallback(() => {
     const isDark = Math.random() > 0.5
     const palette = isDark ? generateDarkPalette() : generateComplementaryPalette()
     const newFont = fontMap[getRandomFont()] || 'var(--font-hanken)'
     setCurrentFont(newFont)
-    
-    schema.sections.forEach(section => {
-      section.fields.forEach(field => {
-        const fieldIdLower = field.id.toLowerCase()
-        
-        if (field.type === 'color') {
-          if (fieldIdLower.includes('bg') || fieldIdLower.includes('background')) {
-            updateField(section.id, field.id, palette.bg)
-          } else if (fieldIdLower.includes('text') || fieldIdLower.includes('color')) {
-            updateField(section.id, field.id, palette.text)
-          } else if (fieldIdLower.includes('accent')) {
-            updateField(section.id, field.id, palette.accent)
-          } else {
-            updateField(section.id, field.id, generateRandomColor())
-          }
-        }
-        
-        if (field.type === 'text') {
-          if (fieldIdLower.includes('headline') || fieldIdLower.includes('title')) {
-            updateField(section.id, field.id, getRandomItem(sampleHeadlines))
-          } else if (fieldIdLower.includes('subheadline') || fieldIdLower.includes('subtext')) {
-            updateField(section.id, field.id, getRandomItem(sampleSubheadlines))
-          }
-        }
-      })
-    })
-    
+
+    randomizeSections(
+      storeSections,
+      {
+        palette,
+        sampleHeadlines,
+        sampleSubheadlines,
+        pickHeadline: () => getRandomItem(sampleHeadlines),
+        pickSubheadline: () => getRandomItem(sampleSubheadlines),
+        randomColor: generateRandomColor,
+      },
+      updateField
+    )
+
     setShowThemeMenu(false)
-  }, [schema, updateField])
+  }, [storeSections, updateField])
 
   return (
     <LayoutPickerProvider>
@@ -467,7 +446,8 @@ function PickerBridge() {
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      if (e.data?.type !== 'readylayout-open-picker') return
+      if (!isTrustedEditorMessage(e)) return
+      if (e.data.type !== 'readylayout-open-picker') return
       const id = e.data.insertAfterId
       const valid = id === null || typeof id === 'string'
       if (!valid) return

@@ -1,5 +1,7 @@
 'use client'
 
+import { richProps } from '@/lib/richtext'
+
 interface ContactFormProps {
   sectionTitle: string
   subtext: string
@@ -32,14 +34,10 @@ export function ContactForm({
     <section style={{ backgroundColor: bgColor, color: textColor }} className="py-20 md:py-28">
       <div className="max-w-md mx-auto px-6">
         {sectionTitle && (
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight leading-[1.15] mb-3">
-            {sectionTitle}
-          </h2>
+          <h2 data-field="sectionTitle" data-field-type="text" className="text-3xl md:text-4xl font-semibold tracking-tight leading-[1.15] mb-3" {...richProps(sectionTitle)} />
         )}
         {subtext && (
-          <p className="text-base opacity-60 mb-10 leading-relaxed">
-            {subtext}
-          </p>
+          <p data-field="subtext" data-field-type="text" className="text-base opacity-60 mb-10 leading-relaxed" {...richProps(subtext)} />
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-8">
@@ -77,11 +75,12 @@ export function ContactForm({
 
           <button
             type="submit"
+            data-field="submitLabel"
+            data-field-type="text"
             className="w-full py-4 text-sm font-semibold tracking-wide transition-opacity hover:opacity-80 active:opacity-60 mt-2"
             style={{ backgroundColor: textColor, color: bgColor }}
-          >
-            {submitLabel || 'Invia'}
-          </button>
+            {...richProps(submitLabel || 'Invia')}
+          />
         </form>
       </div>
     </section>
