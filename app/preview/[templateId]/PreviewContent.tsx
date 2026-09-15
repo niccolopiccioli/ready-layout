@@ -60,17 +60,24 @@ function readPersisted(
 export function PreviewContent({ schema, defaultValues }: PreviewContentProps) {
   const searchParams = useSearchParams()
   const clean = searchParams.get('clean') === 'true'
-  const [state, setState] = useState<HydrationState>(() => {
-    if (typeof window === 'undefined' || clean) return initialState(schema, defaultValues)
-    return readPersisted(schema.id, schema, defaultValues) ?? initialState(schema, defaultValues)
-  })
+  // Stato iniziale sempre dai default → server e primo render client coincidono.
+  // Il persistito viene letto solo dopo il mount (niente mismatch hydration).
+  const [state, setState] = useState<HydrationState>(() => initialState(schema, defaultValues))
 
   useEffect(() => {
     if (clean) return
 
-    return subscribeEditorSync(schema.id, (payload) => {
+    const raf = requestAnimationFrame(() => {
+      const persisted = readPersisted(schema.id, schema, defaultValues)
+      if (persisted) setState(persisted)
+    })
+    const unsubscribe = subscribeEditorSync(schema.id, (payload) => {
       setState(hydrateFrom(payload, schema, defaultValues))
     })
+    return () => {
+      cancelAnimationFrame(raf)
+      unsubscribe()
+    }
   }, [clean, schema, defaultValues])
 
   const orderedSchema = useMemo<TemplateSchema>(() => {

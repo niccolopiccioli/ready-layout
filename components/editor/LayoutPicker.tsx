@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEditorStore } from '@/lib/store/editor-context'
 import { LAYOUT_PRESETS, type LayoutPreset } from '@/lib/presets/layouts'
 import { WireframePreview } from './picker/WireframePreview'
+import { Search, X, Blocks } from 'lucide-react'
 
 interface LayoutPickerProps {
   open: boolean
@@ -12,13 +13,13 @@ interface LayoutPickerProps {
 }
 
 const CATEGORIES: { value: LayoutPreset['category'] | 'all'; label: string }[] = [
-  { value: 'all',       label: 'Tutti' },
-  { value: 'hero',      label: 'Hero' },
-  { value: 'features',  label: 'Features' },
-  { value: 'content',   label: 'Content' },
-  { value: 'commerce',  label: 'Commerce' },
-  { value: 'social',    label: 'Social' },
-  { value: 'utility',   label: 'Utility' },
+  { value: 'all', label: 'Tutti' },
+  { value: 'hero', label: 'Hero' },
+  { value: 'features', label: 'Features' },
+  { value: 'content', label: 'Content' },
+  { value: 'commerce', label: 'Commerce' },
+  { value: 'social', label: 'Social' },
+  { value: 'utility', label: 'Utility' },
 ]
 
 export function LayoutPicker({ open, insertAfterId, onClose }: LayoutPickerProps) {
@@ -53,184 +54,73 @@ export function LayoutPicker({ open, insertAfterId, onClose }: LayoutPickerProps
   if (!open) return null
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Aggiungi sezione"
-      onClick={handleClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        background: 'rgb(0 0 0 / 0.6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 960,
-          maxWidth: '90vw',
-          maxHeight: '80vh',
-          background: 'var(--ed-panel)',
-          borderRadius: 12,
-          boxShadow: '0 30px 60px -20px rgb(0 0 0 / 0.5)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header */}
-        <div style={{
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--ed-border)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <div style={{ fontWeight: 600, fontSize: 16, color: 'var(--ed-primary)' }}>
-            Aggiungi sezione
+    <div role="dialog" aria-modal="true" aria-label="Aggiungi sezione" onClick={handleClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(3,3,8,0.75)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="animate-slide-up"
+        style={{ width: 980, maxWidth: '94vw', maxHeight: '84vh', background: '#0b0b15', border: '1px solid rgba(0,229,255,0.22)', borderRadius: 24, boxShadow: '0 40px 100px -20px rgba(0,0,0,0.9), 0 0 60px rgba(0,229,255,0.1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="h-[3px] w-full" style={{ background: 'linear-gradient(90deg,#00e5ff,#7c3aed,#ff2ea6,#00e5ff)', backgroundSize: '200% 100%', animation: 'gradient-shift 5s linear infinite' }} />
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/8">
+          <span className="w-9 h-9 rounded-xl grid place-items-center shrink-0" style={{ background: 'linear-gradient(135deg,#00e5ff,#7c3aed)' }}>
+            <Blocks size={17} className="text-black" strokeWidth={2.4} />
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="font-display font-bold text-white text-[16px] tracking-tight">Libreria moduli</div>
+            <div className="font-hud text-[9px] tracking-[0.22em] text-cyan-300/60">{filtered.length} PRESET // CLICK PER INIETTARE NEL CANVAS</div>
           </div>
-          <button
-            onClick={handleClose}
-            aria-label="Chiudi"
-            className="ed-press"
-            style={{
-              fontSize: 22,
-              lineHeight: 1,
-              color: 'var(--ed-muted)',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 4,
-            }}
-          >
-            ×
+          <button onClick={handleClose} aria-label="Chiudi" className="ed-press w-9 h-9 grid place-items-center rounded-xl border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-cyan-400/40">
+            <X size={16} />
           </button>
         </div>
 
-        {/* Toolbar */}
-        <div style={{
-          padding: '12px 20px',
-          borderBottom: '1px solid var(--ed-border-subtle)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-        }}>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cerca un layout…"
-            className="ed-input"
-            style={{ fontSize: 14, padding: '8px 12px' }}
-          />
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div className="px-5 py-3.5 border-b border-white/8 flex flex-col gap-2.5 bg-black/30">
+          <div className="flex items-center gap-2.5 rounded-xl px-4 py-3 border border-white/10 bg-black/50">
+            <Search size={15} className="text-cyan-300/60 shrink-0" />
+            <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cerca layout… (hero, pricing, gallery)"
+              className="bg-transparent outline-none flex-1 text-[14px] text-white placeholder:text-white/30" />
+          </div>
+          <div className="flex gap-1.5 flex-wrap">
             {CATEGORIES.map((c) => (
-              <button
-                key={c.value}
-                onClick={() => setCategory(c.value)}
-                className="ed-press"
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: 999,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  background: category === c.value ? 'var(--ed-accent-surface)' : 'transparent',
-                  color: category === c.value ? 'var(--ed-accent-text)' : 'var(--ed-secondary)',
-                  border: '1px solid ' + (category === c.value ? 'transparent' : 'var(--ed-border)'),
-                  cursor: 'pointer',
-                }}
-              >
+              <button key={c.value} onClick={() => setCategory(c.value)} className="ed-press px-3.5 py-2 rounded-full font-display text-[10px] font-bold tracking-[0.06em] uppercase border"
+                style={category === c.value
+                  ? { background: 'linear-gradient(135deg,#00e5ff,#4f7cff)', color: '#02060a', borderColor: 'transparent', fontWeight: 800 }
+                  : { background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.55)', borderColor: 'rgba(255,255,255,0.09)' }}>
                 {c.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Grid */}
         <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
           {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ed-muted)' }}>
-              Nessun layout trovato
+            <div className="text-center py-14">
+              <div className="font-display font-bold text-white text-lg">Nessun modulo trovato</div>
+              <div className="font-hud text-[10px] tracking-[0.2em] text-white/30 mt-2">PROVA UN’ALTRA QUERY</div>
             </div>
           ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-              gap: 16,
-            }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 14 }}>
               {filtered.map((preset) => (
-                <PresetCard
-                  key={preset.id}
-                  preset={preset}
-                  onClick={() => {
-                    addSection(preset.id, insertAfterId)
-                    handleClose()
-                  }}
-                />
+                <button key={preset.id} onClick={() => { addSection(preset.id, insertAfterId); handleClose() }}
+                  className="ed-press group text-left rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:border-cyan-400/50 hover:shadow-[0_0_30px_rgba(0,229,255,0.15)] hover:-translate-y-1 transition-all">
+                  <div className="pointer-events-none" style={{ width: '100%', aspectRatio: '3 / 2', overflow: 'hidden', position: 'relative', background: '#08080f' }}>
+                    <WireframePreview
+                      blockType={preset.blockType}
+                      accentColor={preset.defaultValues.accentColor as string | undefined}
+                      bgColor={preset.defaultValues.bgColor as string | undefined}
+                      textColor={preset.defaultValues.textColor as string | undefined}
+                    />
+                    <span className="absolute top-2 left-2 font-hud text-[8px] tracking-[0.18em] px-2 py-1 rounded-md bg-black/60 backdrop-blur border border-white/15 text-cyan-200 uppercase">{preset.category}</span>
+                  </div>
+                  <div className="px-3.5 py-3 border-t border-white/8 flex items-center gap-2">
+                    <span className="text-[13px] font-semibold text-white flex-1 truncate">{preset.label}</span>
+                    <span className="font-hud text-[10px] text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity">+ ADD</span>
+                  </div>
+                </button>
               ))}
             </div>
           )}
         </div>
       </div>
     </div>
-  )
-}
-
-function PresetCard({ preset, onClick }: { preset: LayoutPreset; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="ed-press"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 0,
-        background: 'var(--ed-bg)',
-        border: '1px solid var(--ed-border)',
-        borderRadius: 8,
-        overflow: 'hidden',
-        cursor: 'pointer',
-        textAlign: 'left',
-        padding: 0,
-        transition: 'border-color var(--dur-hover) var(--ease-out), transform var(--dur-hover) var(--ease-out)',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--ed-accent)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--ed-border)'
-      }}
-    >
-      {/* Wireframe preview */}
-      <div style={{
-        width: '100%',
-        aspectRatio: '3 / 2',
-        overflow: 'hidden',
-        position: 'relative',
-        pointerEvents: 'none',
-      }}>
-        <WireframePreview
-          blockType={preset.blockType}
-          accentColor={preset.defaultValues.accentColor as string | undefined}
-          bgColor={preset.defaultValues.bgColor as string | undefined}
-          textColor={preset.defaultValues.textColor as string | undefined}
-        />
-      </div>
-      {/* Label */}
-      <div style={{
-        padding: '10px 12px',
-        fontSize: 13,
-        fontWeight: 500,
-        color: 'var(--ed-primary)',
-        borderTop: '1px solid var(--ed-border-subtle)',
-      }}>
-        {preset.label}
-      </div>
-    </button>
   )
 }

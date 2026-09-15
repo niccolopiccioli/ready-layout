@@ -86,9 +86,9 @@ export function ImageEditor({ children }: ImageEditorProps) {
             top: hoveredField.rect.top - 3,
             width: hoveredField.rect.width + 6,
             height: hoveredField.rect.height + 6,
-            border: '1px solid var(--ed-accent)',
-            borderRadius: '4px',
-            boxShadow: '0 0 0 3px var(--ed-accent-surface)',
+            border: '1.5px solid #00e5ff',
+            borderRadius: '12px',
+            boxShadow: '0 0 0 4px rgba(0,229,255,0.15), 0 0 24px rgba(0,229,255,0.3)',
           }}
         />
       )}
@@ -221,17 +221,20 @@ function ImagePopover({ anchorRect, sectionId, fieldId, onSave, onCancel }: Imag
         left: position.left,
         top: position.top,
         width: 360,
-        background: 'var(--ed-surface)',
-        border: '1px solid var(--ed-border)',
-        borderRadius: '6px',
-        boxShadow: '0 8px 28px -8px rgb(0 0 0 / 0.18), 0 2px 6px -2px rgb(0 0 0 / 0.08)',
+        maxWidth: 'calc(100vw - 24px)',
+        background: 'rgba(10,10,18,0.97)',
+        backdropFilter: 'blur(24px)',
+        border: '1px solid rgba(0,229,255,0.3)',
+        borderRadius: '18px',
+        boxShadow: '0 24px 70px rgba(0,0,0,0.7), 0 0 40px rgba(0,229,255,0.12)',
         transformOrigin: position.placement === 'below' ? 'top left' : 'bottom left',
         animation: 'image-pop var(--dur-pop) var(--ease-out)',
+        overflow: 'hidden',
       }}
     >
       <div
         className="flex items-stretch"
-        style={{ borderBottom: '1px solid var(--ed-border-subtle)' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,229,255,0.04)' }}
       >
         <TabButton active={tab === 'url'} onClick={() => setTab('url')} icon={<LinkIcon className="w-3.5 h-3.5" />} label="URL" />
         <TabButton active={tab === 'preset'} onClick={() => setTab('preset')} icon={<LayoutGrid className="w-3.5 h-3.5" />} label="Galleria" />
@@ -267,11 +270,12 @@ function ImagePopover({ anchorRect, sectionId, fieldId, onSave, onCancel }: Imag
             <button
               onClick={() => onSave(url)}
               disabled={!validateUrl(url)}
-              className="ed-press text-[12px] font-medium px-2.5 py-1.5 rounded"
+              className="ed-press text-[12px] font-bold px-4 py-2 rounded-xl"
               style={{
-                background: validateUrl(url) ? 'var(--ed-accent)' : 'var(--ed-border)',
-                color: validateUrl(url) ? 'var(--ed-canvas)' : 'var(--ed-muted)',
+                background: validateUrl(url) ? 'linear-gradient(135deg,#00e5ff,#4f7cff)' : 'rgba(255,255,255,0.08)',
+                color: validateUrl(url) ? '#02060a' : 'rgba(255,255,255,0.3)',
                 cursor: validateUrl(url) ? 'pointer' : 'not-allowed',
+                boxShadow: validateUrl(url) ? '0 2px 14px rgba(0,229,255,0.4)' : 'none',
               }}
             >
               Applica
@@ -338,10 +342,10 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className="ed-press flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] font-medium"
+      className="ed-press flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-[12px] font-bold"
       style={{
-        color: active ? 'var(--ed-accent)' : 'var(--ed-muted)',
-        borderBottom: active ? '2px solid var(--ed-accent)' : '2px solid transparent',
+        color: active ? '#7df3ff' : 'rgba(255,255,255,0.4)',
+        borderBottom: active ? '2px solid #00e5ff' : '2px solid transparent',
         marginBottom: '-1px',
       }}
     >

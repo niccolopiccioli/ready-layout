@@ -9,18 +9,40 @@ import { linkInBioSchema } from '@/lib/schemas/link-in-bio'
 import { eventSchema } from '@/lib/schemas/event'
 import { agencySchema } from '@/lib/schemas/agency'
 import { resumeSchema } from '@/lib/schemas/resume'
+import {
+  startupPresets,
+  portfolioPresets,
+  bistroPresets,
+  blogPresets,
+  shopPresets,
+  comingSoonPresets,
+  linkInBioPresets,
+  eventPresets,
+  agencyPresets,
+  resumePresets,
+} from '@/lib/presets'
 
 export const templates: TemplateSchema[] = [
   startupLaunchpadSchema,
+  ...startupPresets,
   portfolioSchema,
+  ...portfolioPresets,
   bistroSchema,
+  ...bistroPresets,
   blogSchema,
+  ...blogPresets,
   shopSchema,
+  ...shopPresets,
   comingSoonSchema,
+  ...comingSoonPresets,
   linkInBioSchema,
+  ...linkInBioPresets,
   eventSchema,
+  ...eventPresets,
   agencySchema,
+  ...agencyPresets,
   resumeSchema,
+  ...resumePresets,
 ]
 
 export function getTemplateById(id: string): TemplateSchema | undefined {

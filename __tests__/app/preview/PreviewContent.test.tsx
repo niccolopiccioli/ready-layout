@@ -1,4 +1,4 @@
-import { render, screen, act } from '@testing-library/react'
+import { render, screen, act, waitFor } from '@testing-library/react'
 import { PreviewContent } from '@/app/preview/[templateId]/PreviewContent'
 import type { TemplateSchema } from '@/lib/schemas/types'
 
@@ -52,7 +52,7 @@ describe('PreviewContent', () => {
     expect(screen.getByText(/Default headline/i)).toBeInTheDocument()
   })
 
-  it('hydrates from localStorage when payload exists', () => {
+  it('hydrates from localStorage when payload exists', async () => {
     const saved = {
       sections: [
         {
@@ -71,7 +71,10 @@ describe('PreviewContent', () => {
     localStorage.setItem(`readylayout-${TEMPLATE_ID}`, JSON.stringify(saved))
 
     render(<PreviewContent schema={mockSchema} defaultValues={defaults} />)
-    expect(screen.getByText(/Saved headline/i)).toBeInTheDocument()
+    // L'idratazione è volutamente differita post-mount (anti hydration-mismatch)
+    await waitFor(() => {
+      expect(screen.getByText(/Saved headline/i)).toBeInTheDocument()
+    })
   })
 
   it('ignores localStorage when clean=true', () => {

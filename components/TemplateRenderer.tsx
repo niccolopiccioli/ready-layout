@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import type { Section, TemplateSchema, TemplateValues } from '@/lib/schemas/types'
 import { BlockRenderer } from '@/components/blocks/BlockRenderer'
+import { SectionWrapper } from '@/components/SectionWrapper'
 import { useEditorStore } from '@/lib/store/editor-context'
 import { GripVertical } from 'lucide-react'
 import { SectionInserter } from './editor/SectionInserter'
@@ -19,12 +20,14 @@ export function TemplateRenderer({ schema, values, editable = true }: TemplateRe
       <div className="font-sans" data-template={schema.id}>
         {schema.sections.map((section) => (
           <section key={section.id} data-section={section.id}>
-            <BlockRenderer
-              blockType={section.blockType}
-              sectionId={section.id}
-              values={values[section.id] ?? {}}
-              variant={section.variant}
-            />
+            <SectionWrapper sectionId={section.id} values={values[section.id] ?? {}}>
+              <BlockRenderer
+                blockType={section.blockType}
+                sectionId={section.id}
+                values={values[section.id] ?? {}}
+                variant={section.variant}
+              />
+            </SectionWrapper>
           </section>
         ))}
       </div>
@@ -43,7 +46,6 @@ function EditableTemplate({ schema, values }: { schema: TemplateSchema; values: 
 
   return (
     <div className="font-sans" data-template={schema.id}>
-      {/* Inserter all'inizio (sopra la prima sezione) */}
       <SectionInserter insertAfterId="" />
       {orderedSections.map((section, index) => {
         const prevId = index === 0 ? null : orderedSections[index - 1].id
@@ -54,7 +56,6 @@ function EditableTemplate({ schema, values }: { schema: TemplateSchema; values: 
           </div>
         )
       })}
-      {/* Inserter in coda */}
       {orderedSections.length > 0 && (
         <SectionInserter insertAfterId={orderedSections[orderedSections.length - 1].id} />
       )}
@@ -124,54 +125,44 @@ function DraggableSection({ section, values, index }: DraggableSectionProps) {
       onDragLeave={() => setDragOver(null)}
       onDrop={handleDrop}
     >
-      {/* Drag handle */}
+      {/* neon drag handle */}
       <div
-        className={`absolute left-0 top-0 bottom-0 w-6 z-20 cursor-grab flex flex-col items-center justify-center ${
-          isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-        }`}
-        style={{
-          marginLeft: '-6px',
-          transition: 'opacity var(--dur-hover) var(--ease-out), background var(--dur-hover) var(--ease-out)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'var(--ed-accent-surface)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-        }}
+        className={`absolute left-2 top-4 z-20 transition-all duration-200 ${isDragging ? 'opacity-100 scale-110' : 'opacity-0 group-hover:opacity-100'}`}
       >
-        <GripVertical className="w-4 h-4" style={{ color: 'var(--ed-muted)' }} />
+        <div
+          className="w-8 h-12 rounded-xl grid place-items-center cursor-grab active:cursor-grabbing border backdrop-blur-md"
+          title="Trascina per riordinare"
+          style={{
+            background: isDragging ? 'rgba(0,229,255,0.9)' : 'rgba(8,8,16,0.85)',
+            borderColor: 'rgba(0,229,255,0.4)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.4), 0 0 16px rgba(0,229,255,0.25)',
+          }}
+        >
+          <GripVertical size={15} style={{ color: isDragging ? '#02060a' : '#00e5ff' }} />
+        </div>
       </div>
 
       {dragOver === 'top' && (
-        <div
-          className="absolute left-0 right-0 top-0 z-30"
-          style={{ height: '2px', background: 'var(--ed-accent)' }}
-        />
+        <div className="absolute left-4 right-4 top-0 z-30 rounded-full" style={{ height: 3, background: 'linear-gradient(90deg, transparent, #00e5ff, #ff2ea6, transparent)', boxShadow: '0 0 16px #00e5ff' }} />
       )}
       {dragOver === 'bottom' && (
-        <div
-          className="absolute left-0 right-0 bottom-0 z-30"
-          style={{ height: '2px', background: 'var(--ed-accent)' }}
-        />
+        <div className="absolute left-4 right-4 bottom-0 z-30 rounded-full" style={{ height: 3, background: 'linear-gradient(90deg, transparent, #00e5ff, #ff2ea6, transparent)', boxShadow: '0 0 16px #00e5ff' }} />
       )}
 
       <section
         ref={sectionRef}
         data-section={section.id}
-        className={isDragging ? 'opacity-50' : ''}
-        style={{
-          cursor: 'grab',
-          paddingLeft: '8px',
-          transition: 'opacity var(--dur-hover) var(--ease-out)',
-        }}
+        className={isDragging ? 'opacity-40 saturate-150' : ''}
+        style={{ cursor: 'grab', transition: 'opacity .18s' }}
       >
-        <BlockRenderer
-          blockType={section.blockType}
-          sectionId={section.id}
-          values={values}
-          variant={section.variant}
-        />
+        <SectionWrapper sectionId={section.id} values={values}>
+          <BlockRenderer
+            blockType={section.blockType}
+            sectionId={section.id}
+            values={values}
+            variant={section.variant}
+          />
+        </SectionWrapper>
       </section>
     </div>
   )

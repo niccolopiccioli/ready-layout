@@ -80,36 +80,27 @@ function DraggableItemInner({ sectionId, fieldId, itemIndex, children }: Draggab
       onDragLeave={() => setDragOver(null)}
       onDrop={handleDrop}
     >
-      {/* Drop indicators — token-based, no banned border-left stripe */}
       {dragOver === 'top' && (
         <div
-          className="absolute left-0 right-0 -top-px z-50 rounded"
-          style={{ height: '2px', background: 'var(--ed-accent)' }}
+          className="absolute left-2 right-2 -top-px z-50 rounded-full"
+          style={{ height: 3, background: 'linear-gradient(90deg, transparent, #00e5ff, #ff2ea6, transparent)', boxShadow: '0 0 12px #00e5ff' }}
         />
       )}
       {dragOver === 'bottom' && (
         <div
-          className="absolute left-0 right-0 -bottom-px z-50 rounded"
-          style={{ height: '2px', background: 'var(--ed-accent)' }}
+          className="absolute left-2 right-2 -bottom-px z-50 rounded-full"
+          style={{ height: 3, background: 'linear-gradient(90deg, transparent, #00e5ff, #ff2ea6, transparent)', boxShadow: '0 0 12px #00e5ff' }}
         />
       )}
 
-      {/* Drag handle — accent surface on hover, no colored stripe */}
       <div
-        className={`absolute left-0 top-0 bottom-0 w-5 z-30 cursor-grab flex items-center justify-center ${
-          isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-        }`}
-        style={{
-          transition: 'opacity var(--dur-hover) var(--ease-out), background var(--dur-hover) var(--ease-out)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'var(--ed-accent-surface)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-        }}
+        className={`absolute left-1 top-2 z-30 cursor-grab ${isDragging ? 'opacity-100 scale-110' : 'opacity-0 group-hover:opacity-100'}`}
+        style={{ transition: 'all .18s' }}
       >
-        <GripVertical className="w-3.5 h-3.5" style={{ color: 'var(--ed-accent)' }} />
+        <div className="w-6 h-9 rounded-lg grid place-items-center border backdrop-blur-md"
+          style={{ background: 'rgba(8,8,16,0.88)', borderColor: 'rgba(0,229,255,0.45)', boxShadow: '0 2px 12px rgba(0,0,0,0.5), 0 0 12px rgba(0,229,255,0.25)' }}>
+          <GripVertical size={12} style={{ color: '#00e5ff' }} />
+        </div>
       </div>
 
       <div

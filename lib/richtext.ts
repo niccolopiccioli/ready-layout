@@ -15,14 +15,57 @@ export function rt(value: unknown): string {
     .replace(/\n/g, '<br>')
 }
 
-/** Strip Tiptap's outer <p> wrappers, converting paragraph breaks to <br>. */
+const BLOCK_TAG_RE = /<(ul|ol|h[1-6]|blockquote|pre)[\s>]/i
+
+/** True quando l'HTML contiene struttura a blocchi (liste, titoli, …). */
+export function hasBlockStructure(html: string): boolean {
+  return BLOCK_TAG_RE.test(html)
+}
+
+/**
+ * Converte l'HTML dell'editor nel formato compatto da salvare.
+ * - Paragrafi semplici → uniti con <br> (comportamento storico)
+ * - Paragrafi con style (es. text-align) → <span display:block> (valido dentro h1/button/p)
+ * - Liste / titoli / blocchi → conservati così come sono
+ */
 export function normalizeRichHtml(html: string): string {
   if (!html) return ''
-  return html
-    .replace(/^<p>/, '')
-    .replace(/<\/p>$/, '')
-    .replace(/<\/p>\s*<p>/g, '<br>')
-    .trim()
+  const trimmed = html.trim()
+  if (!trimmed || trimmed === '<p></p>') return ''
+
+  if (hasBlockStructure(trimmed)) return trimmed
+
+  const parts: string[] = []
+  const paraRe = /<p(\s[^>]*)?>([\s\S]*?)<\/p>/gi
+  let m: RegExpExecArray | null
+  let matched = false
+  while ((m = paraRe.exec(trimmed)) !== null) {
+    matched = true
+    const attrs = m[1] ?? ''
+    const inner = m[2]
+    if (!inner.trim() && !attrs.trim()) continue
+    const styleMatch = attrs.match(/style="([^"]*)"/i)
+    const style = styleMatch?.[1]?.trim() ?? ''
+    if (style) {
+      parts.push(`<span style="display:block;${style}">${inner}</span>`)
+    } else {
+      parts.push(inner)
+    }
+  }
+  if (!matched) return trimmed
+  return parts.join('<br>').trim()
+}
+
+/**
+ * Prepara un valore salvato come contenuto iniziale dell'editor Tiptap.
+ * Evita il doppio wrapping <p> quando il valore contiene già blocchi.
+ */
+export function toEditorContent(rawValue: unknown): string {
+  const html = rt(rawValue)
+  if (!html) return '<p></p>'
+  if (hasBlockStructure(html)) return html
+  if (/^\s*</.test(html)) return html
+  return `<p>${html}</p>`
 }
 
 /**

@@ -5,44 +5,15 @@ import { useEditorStore } from '@/lib/store/editor-context'
 import { FieldRenderer } from './FieldRenderer'
 import { useLayoutPicker } from './picker/LayoutPickerContext'
 import { cssColorToHex } from '@/lib/colorUtils'
+import { Plus, RotateCcw, Trash2, Type, Palette, Image as ImageIcon, Layers, SlidersHorizontal } from 'lucide-react'
+import { SectionStyleControls } from './SectionStyleControls'
 import type { Field } from '@/lib/schemas/types'
 
 const BLOCK_LABELS: Record<string, string> = {
-  hero: 'Hero',
-  features: 'Features',
-  pricing: 'Pricing',
-  faq: 'FAQ',
-  cta: 'Call to Action',
-  about: 'About',
-  gallery: 'Galleria',
-  articles: 'Articoli',
-  contact: 'Contatti',
-  linklist: 'Link List',
-  menu: 'Menu',
-  products: 'Prodotti',
-  testimonials: 'Testimonianze',
-  stats: 'Statistiche',
-  schedule: 'Orari',
-  textblock: 'Testo libero',
-}
-
-const BLOCK_ICONS: Record<string, string> = {
-  hero: '⬡',
-  features: '◈',
-  pricing: '◎',
-  faq: '◇',
-  cta: '▶',
-  about: '◉',
-  gallery: '▣',
-  articles: '▤',
-  contact: '◻',
-  linklist: '⊞',
-  menu: '≡',
-  products: '◼',
-  testimonials: '❝',
-  stats: '▦',
-  schedule: '◷',
-  textblock: '▬',
+  hero: 'Hero', features: 'Features', pricing: 'Pricing', faq: 'FAQ', cta: 'Call to Action',
+  about: 'About', gallery: 'Galleria', articles: 'Articoli', contact: 'Contatti', linklist: 'Link List',
+  menu: 'Menu', products: 'Prodotti', testimonials: 'Testimonianze', stats: 'Statistiche',
+  schedule: 'Orari', textblock: 'Testo libero',
 }
 
 export function Sidebar() {
@@ -53,6 +24,7 @@ export function Sidebar() {
   const setActiveSection = useEditorStore((s) => s.setActiveSection)
   const updateField = useEditorStore((s) => s.updateField)
   const removeSection = useEditorStore((s) => s.removeSection)
+  const duplicateSection = useEditorStore((s) => s.duplicateSection)
   const reset = useEditorStore((s) => s.reset)
 
   const [confirmReset, setConfirmReset] = useState(false)
@@ -68,9 +40,8 @@ export function Sidebar() {
 
   const section = orderedSections.find((s) => s.id === activeSection)
 
-  // Group fields by type
   const groups = useMemo(() => {
-    if (!section) return { text: [], color: [], image: [], emoji: [], repeater: [] }
+    if (!section) return { text: [], color: [], image: [], emoji: [], repeater: [] as Field[] }
     const text: Field[] = []
     const color: Field[] = []
     const image: Field[] = []
@@ -89,396 +60,161 @@ export function Sidebar() {
   const sectionValues = values[activeSection] ?? {}
 
   return (
-    <aside
-      style={{
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        borderLeft: '1px solid var(--ed-border)',
-        background: 'var(--ed-panel)',
-        fontFamily: 'var(--font-sora), var(--font-hanken), ui-sans-serif, system-ui, sans-serif',
-      }}
-      aria-label="Pannello proprietà"
-    >
-      {/* Section list */}
-      <div
-        style={{
-          padding: '12px 12px 10px',
-          borderBottom: '1px solid var(--ed-border)',
-        }}
-      >
-        <div
-          style={{
-            fontSize: '10px',
-            fontWeight: 600,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--ed-muted)',
-            marginBottom: '6px',
-            paddingLeft: 4,
-          }}
-        >
-          Sezioni
+    <aside className="flex flex-col h-full border-l border-white/8" style={{ background: 'rgba(8,8,15,0.96)', backdropFilter: 'blur(24px)' }} aria-label="Pannello proprietà">
+      {/* HUD header */}
+      <div className="px-4 pt-4 pb-3 border-b border-white/8">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-hud text-[9px] tracking-[0.26em] text-cyan-300/70 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> CONTROL DECK
+          </span>
+          <span className="font-hud text-[9px] tracking-[0.18em] text-white/30 tabular-nums">{orderedSections.length} MODULI</span>
         </div>
-        <div
-          style={{
-            maxHeight: 200,
-            overflowY: 'auto',
-            overscrollBehavior: 'contain',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1,
-          }}
-        >
+        <div className="max-h-[218px] overflow-y-auto flex flex-col gap-1 pr-0.5">
           {orderedSections.map((s, idx) => {
             const isActive = s.id === activeSection
             const isFirst = idx === 0
             const isConfirming = confirmRemoveId === s.id
-
             return (
-              <div
-                key={s.id}
-                className="group"
+              <div key={s.id} className="group flex items-center gap-1 rounded-xl border transition-all"
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                  borderRadius: 6,
-                  background: isActive ? 'var(--ed-accent-surface)' : 'transparent',
-                  transition: 'background var(--dur-hover) var(--ease-out)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) (e.currentTarget as HTMLElement).style.background = 'var(--ed-bg)'
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'
-                }}
-              >
-                <button
-                  className="ed-press"
-                  onClick={() => setActiveSection(s.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '7px 10px',
-                    borderRadius: 6,
-                    background: 'transparent',
-                    color: isActive ? 'var(--ed-accent-text)' : 'var(--ed-secondary)',
-                    fontFamily: 'inherit',
-                    fontSize: 13,
-                    fontWeight: isActive ? 500 : 400,
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    flex: 1,
-                    minWidth: 0,
-                  }}
-                >
-                  <span style={{ fontSize: 12, opacity: 0.75, lineHeight: 1, flexShrink: 0 }}>
-                    {BLOCK_ICONS[s.blockType] ?? '○'}
+                  background: isActive ? 'rgba(0,229,255,0.09)' : 'transparent',
+                  borderColor: isActive ? 'rgba(0,229,255,0.35)' : 'transparent',
+                  boxShadow: isActive ? '0 0 20px rgba(0,229,255,0.12)' : 'none',
+                }}>
+                <button onClick={() => setActiveSection(s.id)}
+                  className="ed-press flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left min-w-0">
+                  <span className="font-hud text-[9px] tabular-nums shrink-0" style={{ color: isActive ? '#7df3ff' : 'rgba(255,255,255,0.28)' }}>
+                    {String(idx + 1).padStart(2, '0')}
                   </span>
-                  <span
-                    style={{
-                      flex: 1,
-                      textAlign: 'left',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {s.label}
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: isActive ? '#00e5ff' : 'rgba(255,255,255,0.18)', boxShadow: isActive ? '0 0 8px #00e5ff' : 'none' }} />
+                  <span className="flex-1 truncate text-[13px] font-semibold" style={{ color: isActive ? '#fff' : 'rgba(255,255,255,0.6)' }}>
+                    {s.label || BLOCK_LABELS[s.blockType] || s.blockType}
                   </span>
+                  <span className="font-hud text-[8px] tracking-[0.16em] uppercase hidden group-hover:inline" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.blockType}</span>
                 </button>
-                {!isFirst &&
-                  (isConfirming ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 2, paddingRight: 6 }}>
-                      <button
-                        onClick={() => {
-                          removeSection(s.id)
-                          setConfirmRemoveId(null)
-                        }}
-                        className="ed-press"
-                        style={{
-                          fontSize: 11,
-                          color: 'oklch(55% 0.2 25)',
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '2px 4px',
-                        }}
-                      >
-                        Rimuovi
-                      </button>
-                      <button
-                        onClick={() => setConfirmRemoveId(null)}
-                        className="ed-press"
-                        style={{
-                          fontSize: 11,
-                          color: 'var(--ed-muted)',
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '2px 4px',
-                        }}
-                      >
-                        Annulla
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setConfirmRemoveId(s.id)
-                      }}
-                      aria-label={`Rimuovi sezione ${s.label}`}
-                      className="ed-press opacity-0 group-hover:opacity-100"
-                      style={{
-                        fontSize: 16,
-                        lineHeight: 1,
-                        color: 'var(--ed-muted)',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px 8px',
-                        transition: 'opacity var(--dur-hover) var(--ease-out), color var(--dur-hover) var(--ease-out)',
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = 'oklch(55% 0.2 25)' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--ed-muted)' }}
-                    >
-                      ×
-                    </button>
-                  ))}
+                {!isFirst && !isConfirming && (
+                  <button onClick={(e) => { e.stopPropagation(); setConfirmRemoveId(s.id) }} aria-label={`Rimuovi sezione ${s.label}`}
+                    className="ed-press opacity-0 group-hover:opacity-100 w-7 h-7 grid place-items-center rounded-lg text-white/35 hover:text-red-400 hover:bg-red-500/10 mr-1">
+                    <Trash2 size={13} />
+                  </button>
+                )}
+                {isConfirming && (
+                  <span className="flex items-center gap-1 pr-2">
+                    <button onClick={() => { removeSection(s.id); setConfirmRemoveId(null) }} className="ed-press text-[10px] font-bold px-2 py-1 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30">SÌ</button>
+                    <button onClick={() => setConfirmRemoveId(null)} className="ed-press text-[10px] px-2 py-1 rounded-lg text-white/50 hover:text-white">NO</button>
+                  </span>
+                )}
               </div>
             )
           })}
         </div>
-        <button
-          onClick={() => openPicker(orderedSections.length > 0 ? orderedSections[orderedSections.length - 1].id : null)}
-          className="ed-press"
-          style={{
-            marginTop: 8,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            padding: '7px 10px',
-            borderRadius: 6,
-            background: 'transparent',
-            border: '1px dashed var(--ed-border)',
-            color: 'var(--ed-secondary)',
-            fontFamily: 'inherit',
-            fontSize: 12,
-            fontWeight: 500,
-            width: '100%',
-            cursor: 'pointer',
-            transition: 'background var(--dur-hover) var(--ease-out), border-color var(--dur-hover) var(--ease-out)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'var(--ed-bg)'
-            e.currentTarget.style.borderColor = 'var(--ed-accent)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent'
-            e.currentTarget.style.borderColor = 'var(--ed-border)'
-          }}
-        >
-          <span style={{ fontSize: 14, lineHeight: 1 }}>+</span>
-          Aggiungi sezione
+        <button onClick={() => openPicker(orderedSections.length > 0 ? orderedSections[orderedSections.length - 1].id : null)}
+          className="ed-press mt-2.5 w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-cyan-400/30 bg-cyan-400/5 text-cyan-200 text-[12px] font-bold tracking-wide hover:bg-cyan-400/10 hover:border-cyan-400/60">
+          <Plus size={14} strokeWidth={2.8} /> AGGIUNGI MODULO
         </button>
       </div>
 
-      {/* Fields — scrollable, grouped */}
-      <div style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: '12px 16px 24px' }}>
-        {/* Text fields */}
-        {groups.text.length > 0 && (
-          <FieldGroup label="Testi" icon="T">
-            {groups.text.map((field) => (
-              <FieldRenderer
-                key={field.id}
-                field={field}
-                value={sectionValues[field.id] ?? field.default}
-                onChange={(val) => updateField(activeSection, field.id, val)}
-              />
-            ))}
-          </FieldGroup>
-        )}
+      {/* active section HUD */}
+      {section && (
+        <div className="px-4 py-3 border-b border-white/8 flex items-center gap-3 bg-black/30">
+          <div className="min-w-0 flex-1">
+            <div className="font-hud text-[8px] tracking-[0.26em] text-white/30">EDITING //</div>
+            <div className="font-display font-bold text-white text-[15px] tracking-tight truncate">{section.label}</div>
+          </div>
+          <button onClick={() => duplicateSection(section.id)} title="Duplica sezione"
+            className="ed-press font-hud text-[9px] tracking-[0.14em] px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-white/55 hover:text-cyan-300 hover:border-cyan-400/40">
+            DUPLICA
+          </button>
+        </div>
+      )}
 
-        {/* Color fields */}
-        {groups.color.length > 0 && (
-          <FieldGroup label="Colori" icon="●">
-            <CompactColorRow
-              fields={groups.color}
+      {/* fields */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {section && (
+          <FieldGroup label="Layout & Stile" icon={<SlidersHorizontal size={12} />}>
+            <SectionStyleControls
               values={sectionValues}
-              sectionId={activeSection}
-              onChange={updateField}
+              onStyleChange={(fieldId, val) => updateField(activeSection, fieldId, val)}
             />
           </FieldGroup>
         )}
-
-        {/* Image fields */}
+        {groups.text.length > 0 && (
+          <FieldGroup label="Testi" icon={<Type size={12} />}>
+            {groups.text.map((field) => (
+              <FieldRenderer key={field.id} field={field} value={sectionValues[field.id] ?? field.default} onChange={(val) => updateField(activeSection, field.id, val)} />
+            ))}
+          </FieldGroup>
+        )}
+        {groups.color.length > 0 && (
+          <FieldGroup label="Materia / Colori" icon={<Palette size={12} />}>
+            <CompactColorRow fields={groups.color} values={sectionValues} sectionId={activeSection} onChange={updateField} />
+          </FieldGroup>
+        )}
         {(groups.image.length > 0 || groups.emoji.length > 0) && (
-          <FieldGroup label="Media" icon="⬜">
+          <FieldGroup label="Media" icon={<ImageIcon size={12} />}>
             {groups.image.map((field) => (
-              <FieldRenderer
-                key={field.id}
-                field={field}
-                value={sectionValues[field.id] ?? field.default}
-                onChange={(val) => updateField(activeSection, field.id, val)}
-              />
+              <FieldRenderer key={field.id} field={field} value={sectionValues[field.id] ?? field.default} onChange={(val) => updateField(activeSection, field.id, val)} />
             ))}
             {groups.emoji.map((field) => (
-              <FieldRenderer
-                key={field.id}
-                field={field}
-                value={sectionValues[field.id] ?? field.default}
-                onChange={(val) => updateField(activeSection, field.id, val)}
-              />
+              <FieldRenderer key={field.id} field={field} value={sectionValues[field.id] ?? field.default} onChange={(val) => updateField(activeSection, field.id, val)} />
             ))}
           </FieldGroup>
         )}
-
-        {/* Repeater fields */}
         {groups.repeater.length > 0 && (
-          <FieldGroup label="Elementi" icon="≡">
+          <FieldGroup label="Elementi dinamici" icon={<Layers size={12} />}>
             {groups.repeater.map((field) => (
-              <FieldRenderer
-                key={field.id}
-                field={field}
-                value={sectionValues[field.id] ?? field.default}
-                onChange={(val) => updateField(activeSection, field.id, val)}
-              />
+              <FieldRenderer key={field.id} field={field} value={sectionValues[field.id] ?? field.default} onChange={(val) => updateField(activeSection, field.id, val)} />
             ))}
           </FieldGroup>
         )}
-
         {section?.fields.length === 0 && (
-          <div
-            style={{
-              marginTop: 24,
-              textAlign: 'center',
-              fontSize: '13px',
-              color: 'var(--ed-muted)',
-            }}
-          >
-            Nessun campo modificabile
+          <div className="mt-10 text-center">
+            <div className="font-hud text-[10px] tracking-[0.24em] text-white/30">MODULO VUOTO</div>
+            <p className="text-[12px] text-white/40 mt-2">Nessun campo modificabile qui.</p>
           </div>
         )}
       </div>
 
-      {/* Footer actions */}
-      <div
-        style={{
-          padding: '10px 16px',
-          borderTop: '1px solid var(--ed-border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-        }}
-      >
-        <div style={{ flex: 1 }} />
+      {/* footer */}
+      <div className="px-4 py-3 border-t border-white/8 flex items-center gap-2 bg-black/40">
+        <span className="font-hud text-[8px] tracking-[0.22em] text-white/25">ZONE: DISTRUZIONE</span>
+        <span className="flex-1" />
         {confirmReset ? (
-          <>
-            <span style={{ fontSize: 12, color: 'var(--ed-secondary)' }}>Sicuro?</span>
-            <ActionBtn onClick={() => setConfirmReset(false)}>Annulla</ActionBtn>
-            <ActionBtn
-              onClick={() => { reset(); setConfirmReset(false) }}
-              variant="danger"
-            >
-              Sì, resetta
-            </ActionBtn>
-          </>
+          <span className="flex items-center gap-2">
+            <span className="text-[11px] text-white/60">Sicuro?</span>
+            <button onClick={() => setConfirmReset(false)} className="ed-press text-[11px] px-3 py-1.5 rounded-lg border border-white/12 text-white/60">No</button>
+            <button onClick={() => { reset(); setConfirmReset(false) }} className="ed-press text-[11px] font-bold px-3 py-1.5 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300">SÌ, RESET</button>
+          </span>
         ) : (
-          <ActionBtn
-            onClick={() => setConfirmReset(true)}
-            variant="danger"
-            title="Ripristina valori originali"
-          >
-            Reset tutto
-          </ActionBtn>
+          <button onClick={() => setConfirmReset(true)} title="Ripristina valori originali"
+            className="ed-press flex items-center gap-1.5 text-[11px] font-hud tracking-[0.12em] text-white/35 hover:text-red-400">
+            <RotateCcw size={12} /> RESET TUTTO
+          </button>
         )}
       </div>
-
     </aside>
   )
 }
 
-/* ── Compact color palette row ── */
-function CompactColorRow({
-  fields,
-  values,
-  sectionId,
-  onChange,
-}: {
-  fields: Field[]
-  values: Record<string, unknown>
-  sectionId: string
+function CompactColorRow({ fields, values, sectionId, onChange }: {
+  fields: Field[]; values: Record<string, unknown>; sectionId: string
   onChange: (sectionId: string, fieldId: string, value: unknown) => void
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="grid grid-cols-1 gap-2">
       {fields.map((field) => {
         const val = (values[field.id] as string) ?? (field as { default?: string }).default ?? '#000000'
         return (
-          <div key={field.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Swatch + hidden color input */}
-            <div
-              style={{
-                position: 'relative',
-                width: 32,
-                height: 32,
-                borderRadius: 6,
-                overflow: 'hidden',
-                border: '1px solid var(--ed-border)',
-                flexShrink: 0,
-                cursor: 'pointer',
-              }}
-              title={`Cambia ${field.label}`}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  backgroundColor: val,
-                }}
-              />
-              <input
-                type="color"
-                value={cssColorToHex(val)}
-                onChange={(e) => onChange(sectionId, field.id, e.target.value)}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  opacity: 0,
-                  cursor: 'pointer',
-                  width: '100%',
-                  height: '100%',
-                }}
-                aria-label={field.label}
-              />
+          <div key={field.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-white/8 bg-white/[0.025]">
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-white/15 shrink-0 cursor-pointer" title={`Cambia ${field.label}`} style={{ boxShadow: `0 0 16px ${val}44` }}>
+              <div className="absolute inset-0" style={{ backgroundColor: val }} />
+              <input type="color" value={cssColorToHex(val)} onChange={(e) => onChange(sectionId, field.id, e.target.value)}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" aria-label={field.label} />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 500,
-                  color: 'var(--ed-secondary)',
-                  marginBottom: 3,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                }}
-              >
-                {field.label}
-              </div>
-              <input
-                type="text"
-                value={val}
-                onChange={(e) => onChange(sectionId, field.id, e.target.value)}
-                className="ed-input font-mono"
-                style={{ fontSize: '12px', padding: '4px 8px' }}
-                spellCheck={false}
-                aria-label={`Valore esadecimale ${field.label}`}
-              />
+            <div className="flex-1 min-w-0">
+              <div className="font-hud text-[8px] tracking-[0.2em] text-white/40 uppercase mb-1">{field.label}</div>
+              <input type="text" value={val} onChange={(e) => onChange(sectionId, field.id, e.target.value)}
+                className="ed-input font-mono" style={{ fontSize: 12, padding: '6px 9px' }} spellCheck={false} aria-label={`Valore ${field.label}`} />
             </div>
           </div>
         )
@@ -487,101 +223,15 @@ function CompactColorRow({
   )
 }
 
-/* ── Field group with header ── */
-function FieldGroup({
-  label,
-  icon,
-  children,
-}: {
-  label: string
-  icon: string
-  children: React.ReactNode
-}) {
+function FieldGroup({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 7,
-          marginBottom: 10,
-          paddingBottom: 7,
-          borderBottom: '1px solid var(--ed-border-subtle)',
-        }}
-      >
-        <span
-          style={{
-            fontSize: '11px',
-            color: 'var(--ed-muted)',
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-        >
-          {icon}
-        </span>
-        <span
-          style={{
-            fontSize: '11px',
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--ed-muted)',
-          }}
-        >
-          {label}
-        </span>
+    <div className="mb-5">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="w-6 h-6 rounded-lg grid place-items-center border border-cyan-400/25 bg-cyan-400/10 text-cyan-300">{icon}</span>
+        <span className="font-hud text-[9px] font-bold tracking-[0.22em] uppercase text-white/50">{label}</span>
+        <span className="flex-1 h-px bg-gradient-to-r from-cyan-400/25 to-transparent" />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {children}
-      </div>
+      <div className="flex flex-col gap-3">{children}</div>
     </div>
-  )
-}
-
-/* ── Footer action button ── */
-function ActionBtn({
-  onClick,
-  disabled = false,
-  title,
-  variant = 'default',
-  children,
-}: {
-  onClick: () => void
-  disabled?: boolean
-  title?: string
-  variant?: 'default' | 'danger'
-  children: React.ReactNode
-}) {
-  const colors =
-    variant === 'danger'
-      ? { color: 'oklch(55% 0.2 25)', hoverColor: 'oklch(45% 0.22 25)' }
-      : { color: 'var(--ed-muted)', hoverColor: 'var(--ed-secondary)' }
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      className="ed-press"
-      style={{
-        fontSize: '12px',
-        fontFamily: 'inherit',
-        color: disabled ? 'var(--ed-muted)' : colors.color,
-        background: 'transparent',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        padding: '4px 2px',
-        borderRadius: 4,
-        transition: 'color var(--dur-hover) var(--ease-out)',
-      }}
-      onMouseEnter={(e) => {
-        if (!disabled) e.currentTarget.style.color = colors.hoverColor
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.color = disabled ? 'var(--ed-border)' : colors.color
-      }}
-    >
-      {children}
-    </button>
   )
 }

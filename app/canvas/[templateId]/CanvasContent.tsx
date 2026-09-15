@@ -6,6 +6,7 @@ import { TemplateRenderer } from '@/components/TemplateRenderer'
 import { InlineEditor } from '@/components/editor/inline/InlineEditor'
 import { ImageEditor } from '@/components/editor/inline/ImageEditor'
 import { postToParent } from '@/lib/editor-messaging'
+import { migrateFontVar } from '@/lib/fonts'
 import type { TemplateSchema } from '@/lib/schemas/types'
 
 function HeightReporter() {
@@ -28,16 +29,23 @@ function HeightReporter() {
 function CanvasRenderer() {
   const schema = useEditorStore(s => s.schema)
   const values = useEditorStore(s => s.values)
-  const [fontFamily, setFontFamily] = useState(
-    () => (typeof window !== 'undefined' ? localStorage.getItem('readylayout-font') || '' : '')
-  )
+  // '' sia su server che al primo render client → nessun mismatch hydration.
+  // Il font salvato viene letto solo dopo il mount.
+  const [fontFamily, setFontFamily] = useState('')
 
   useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      const raw = localStorage.getItem('readylayout-font')
+      if (raw) setFontFamily(migrateFontVar(raw))
+    })
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'readylayout-font') setFontFamily(e.newValue || '')
+      if (e.key === 'readylayout-font') setFontFamily(e.newValue ? migrateFontVar(e.newValue) : '')
     }
     window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('storage', handleStorage)
+    }
   }, [])
 
   return (

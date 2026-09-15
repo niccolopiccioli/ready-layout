@@ -11,13 +11,10 @@ interface ColorFieldProps {
 
 export function ColorField({ id, label, value, onChange }: ColorFieldProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="ed-label">{label}</label>
-      <div className="flex items-center gap-2">
-        <div
-          className="relative shrink-0 w-10 h-10 rounded overflow-hidden cursor-pointer"
-          style={{ border: '1px solid var(--ed-border)' }}
-        >
+      <div className="flex items-center gap-2.5 p-2 rounded-xl border border-white/8 bg-white/[0.025]">
+        <div className="relative shrink-0 w-11 h-11 rounded-xl overflow-hidden cursor-pointer border border-white/15" style={{ boxShadow: `0 0 18px ${value}55` }}>
           <div className="absolute inset-0" style={{ backgroundColor: value }} />
           <input
             type="color"
