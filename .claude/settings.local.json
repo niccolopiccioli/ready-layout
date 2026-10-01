@@ -21,7 +21,15 @@
       "Bash(pkill -f \"next dev\")",
       "Bash(mkdir -p /home/nicco/Code/site-generator/app/editor/\\\\[templateId\\\\])",
       "Bash(mkdir -p /home/nicco/Code/site-generator/app/preview/\\\\[templateId\\\\])",
-      "Bash(disown)"
+      "Bash(disown)",
+      "Bash(git stash *)",
+      "Bash(echo \"exit:$?\")",
+      "Skill(superpowers:brainstorming)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "Bash(lsof -ti:3000)",
+      "Skill(update-config)",
+      "Bash(awk '/^export function EditorLayout/,/^}/' /home/nicco/Code/site-generator/components/editor/EditorLayout.tsx)"
     ]
   }
 }
